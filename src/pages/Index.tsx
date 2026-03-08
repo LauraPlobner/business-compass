@@ -8,7 +8,7 @@ import { CompareView } from "@/components/CompareView";
 import { BarChart3, RotateCcw } from "lucide-react";
 
 const Index = () => {
-  const { ideas, setScore, setNotes, addIdea, renameIdea, deleteIdea } = useIdeas();
+  const { ideas, setScore, setNotes, setStructuredNote, addIdea, renameIdea, deleteIdea } = useIdeas();
   const { weights, setWeight, resetWeights } = useWeights();
   const [activeId, setActiveId] = useState(ideas[0]?.id || "");
   const [compareMode, setCompareMode] = useState(false);
