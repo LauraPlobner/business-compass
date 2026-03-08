@@ -64,7 +64,7 @@ export const salesCriteria: SalesCriterion[] = [
   },
 ];
 
-// Combination key: ideaId::modelId::channelId
-export function comboKey(ideaId: string, modelId: string, channelId: string): string {
-  return `${ideaId}::${modelId}::${channelId}`;
+// Combination key: ideaId::modelId::ch1+ch2+... (sorted)
+export function comboKey(ideaId: string, modelId: string, channelIds: string[]): string {
+  return `${ideaId}::${modelId}::${[...channelIds].sort().join("+")}`;
 }
