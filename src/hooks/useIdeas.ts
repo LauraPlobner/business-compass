@@ -24,7 +24,7 @@ export function useIdeas() {
 
   useEffect(() => {
     pb.collection("ideas")
-      .getFullList({ sort: "created" })
+      .getFullList()
       .then(async (records) => {
         if (records.length === 0) {
           const created = await Promise.all(
