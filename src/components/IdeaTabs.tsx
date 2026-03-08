@@ -1,6 +1,6 @@
 import { useState, KeyboardEvent } from "react";
 import { Idea } from "@/data/defaultIdeas";
-import { X, Plus, GitCompareArrows } from "lucide-react";
+import { X, Plus, GitCompareArrows, ShoppingCart } from "lucide-react";
 
 interface IdeaTabsProps {
   ideas: Idea[];
@@ -10,10 +10,12 @@ interface IdeaTabsProps {
   onRename: (id: string, name: string) => void;
   onDelete: (id: string) => void;
   compareMode: boolean;
+  salesMode: boolean;
   onToggleCompare: () => void;
+  onToggleSales: () => void;
 }
 
-export function IdeaTabs({ ideas, activeId, onSelect, onAdd, onRename, onDelete, compareMode, onToggleCompare }: IdeaTabsProps) {
+export function IdeaTabs({ ideas, activeId, onSelect, onAdd, onRename, onDelete, compareMode, salesMode, onToggleCompare, onToggleSales }: IdeaTabsProps) {
   const [adding, setAdding] = useState(false);
   const [newName, setNewName] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -122,7 +124,18 @@ export function IdeaTabs({ ideas, activeId, onSelect, onAdd, onRename, onDelete,
         </button>
       )}
 
-      <div className="ml-auto shrink-0">
+      <div className="ml-auto shrink-0 flex items-center gap-2">
+        <button
+          onClick={onToggleSales}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+            salesMode
+              ? "bg-primary text-primary-foreground shadow-monday"
+              : "text-primary border border-primary/30 hover:bg-primary/10"
+          }`}
+        >
+          <ShoppingCart size={16} />
+          {salesMode ? "← Zurück" : "Sales"}
+        </button>
         <button
           onClick={onToggleCompare}
           className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
