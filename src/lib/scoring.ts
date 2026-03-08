@@ -1,7 +1,8 @@
 import { categories } from "@/data/criteria";
 import { Idea } from "@/data/defaultIdeas";
+import { CustomWeights } from "@/hooks/useWeights";
 
-export function computeCategoryScore(idea: Idea, categoryId: string): number {
+export function computeCategoryScore(idea: Idea, categoryId: string, customWeights?: CustomWeights): number {
   const cat = categories.find((c) => c.id === categoryId);
   if (!cat) return 0;
   let totalWeight = 0;
@@ -9,22 +10,24 @@ export function computeCategoryScore(idea: Idea, categoryId: string): number {
   for (const cr of cat.criteria) {
     const score = idea.scores[cr.id];
     if (score != null) {
-      weightedSum += score * cr.weight;
-      totalWeight += cr.weight;
+      const w = customWeights ? customWeights[cr.id] ?? cr.weight : cr.weight;
+      weightedSum += score * w;
+      totalWeight += w;
     }
   }
   return totalWeight > 0 ? weightedSum / totalWeight : 0;
 }
 
-export function computeTotalScore(idea: Idea): number {
+export function computeTotalScore(idea: Idea, customWeights?: CustomWeights): number {
   let totalWeight = 0;
   let weightedSum = 0;
   for (const cat of categories) {
     for (const cr of cat.criteria) {
       const score = idea.scores[cr.id];
       if (score != null) {
-        weightedSum += score * cr.weight;
-        totalWeight += cr.weight;
+        const w = customWeights ? customWeights[cr.id] ?? cr.weight : cr.weight;
+        weightedSum += score * w;
+        totalWeight += w;
       }
     }
   }
