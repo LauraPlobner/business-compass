@@ -9,7 +9,7 @@ import { SalesView } from "@/components/SalesView";
 import { RotateCcw } from "lucide-react";
 
 const Index = () => {
-  const { ideas, loading, error, setScore, setNotes, setStructuredNote, addIdea, renameIdea, deleteIdea } = useIdeas();
+  const { ideas, loading, error, setScore, setNotes, setStructuredNote, setCompetitorLinks, addIdea, renameIdea, deleteIdea } = useIdeas();
   const { weights, setWeight, resetWeights } = useWeights();
   const [activeId, setActiveId] = useState("");
   const [viewMode, setViewMode] = useState<"scoring" | "compare" | "sales">("scoring");
@@ -90,6 +90,7 @@ const Index = () => {
             weights={weights}
             onSetScore={(crId, val) => setScore(activeIdea.id, crId, val)}
             onSetStructuredNote={(field, value) => setStructuredNote(activeIdea.id, field, value)}
+            onSetCompetitorLinks={(links) => setCompetitorLinks(activeIdea.id, links)}
             onSetWeight={setWeight}
           />
           <ScoreSidebar idea={activeIdea} weights={weights} />

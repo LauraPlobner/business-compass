@@ -79,6 +79,21 @@ export function useIdeas() {
     []
   );
 
+  const setCompetitorLinks = useCallback(
+    async (ideaId: string, links: { name: string; url: string }[]) => {
+      const current = ideasRef.current.find((i) => i.id === ideaId);
+      if (!current) return;
+      const newStructuredNotes = { ...current.structuredNotes, konkurrenz: links };
+      setIdeas((prev) =>
+        prev.map((idea) =>
+          idea.id === ideaId ? { ...idea, structuredNotes: newStructuredNotes } : idea
+        )
+      );
+      await pb.collection("ideas").update(ideaId, { structuredNotes: newStructuredNotes });
+    },
+    []
+  );
+
   const addIdea = useCallback(async (name: string) => {
     const record = await pb.collection("ideas").create({
       name,
@@ -101,5 +116,5 @@ export function useIdeas() {
     await pb.collection("ideas").delete(ideaId);
   }, []);
 
-  return { ideas, loading, error, setScore, setNotes, setStructuredNote, addIdea, renameIdea, deleteIdea };
+  return { ideas, loading, error, setScore, setNotes, setStructuredNote, setCompetitorLinks, addIdea, renameIdea, deleteIdea };
 }

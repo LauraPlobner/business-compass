@@ -3,7 +3,7 @@ export interface IdeaNotes {
   pricing: string;
   status: string;
   fragen: string;
-  sonstiges: string;
+  konkurrenz: { name: string; url: string }[];
 }
 
 export interface Idea {
@@ -19,7 +19,7 @@ const emptyNotes: IdeaNotes = {
   pricing: "",
   status: "",
   fragen: "",
-  sonstiges: "",
+  konkurrenz: [],
 };
 
 export const defaultIdeas: Idea[] = [
@@ -32,7 +32,7 @@ export const defaultIdeas: Idea[] = [
       pricing: "6–15k Setup + auto-Retainer. Ø 15–25k CHF/Jahr pro Kunde.",
       status: "System steht zu 90%, validiert.",
       fragen: "",
-      sonstiges: "",
+      konkurrenz: [],
     },
     scores: {},
   },
@@ -45,7 +45,7 @@ export const defaultIdeas: Idea[] = [
       pricing: "Projekt 3–13k, Retainer 2–8k/Mo.",
       status: "",
       fragen: "Lizenz- oder personengebunden?",
-      sonstiges: "",
+      konkurrenz: [],
     },
     scores: {},
   },
@@ -58,7 +58,7 @@ export const defaultIdeas: Idea[] = [
       pricing: "Option A: 700€/Mo individuell. Option B: 355€/Mo Standardlizenz.",
       status: "",
       fragen: "Churn-Rate, Sales-Komplexität?",
-      sonstiges: "",
+      konkurrenz: [],
     },
     scores: {},
   },

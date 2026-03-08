@@ -1,24 +1,39 @@
 import { categories } from "@/data/criteria";
 import { Idea, IdeaNotesType } from "@/data/defaultIdeas";
 import { CustomWeights } from "@/hooks/useWeights";
+import { Plus, Trash2, ExternalLink } from "lucide-react";
 
 interface ScoringViewProps {
   idea: Idea;
   weights: CustomWeights;
   onSetScore: (criterionId: string, value: number) => void;
   onSetStructuredNote: (field: keyof IdeaNotesType, value: string) => void;
+  onSetCompetitorLinks: (links: { name: string; url: string }[]) => void;
   onSetWeight: (criterionId: string, value: number) => void;
 }
 
-const noteFields: { key: keyof IdeaNotesType; label: string; placeholder: string }[] = [
+const noteFields: { key: "zielgruppe" | "pricing" | "status" | "fragen"; label: string; placeholder: string }[] = [
   { key: "zielgruppe", label: "Zielgruppe", placeholder: "Wer sind die Kunden?" },
   { key: "pricing", label: "Pricing", placeholder: "Preismodell, Umsatz pro Kunde..." },
   { key: "status", label: "Status / Fortschritt", placeholder: "Wie weit ist die Idee?" },
   { key: "fragen", label: "Offene Fragen", placeholder: "Was muss noch geklärt werden?" },
-  { key: "sonstiges", label: "Sonstiges", placeholder: "Weitere Notizen..." },
 ];
 
-export function ScoringView({ idea, weights, onSetScore, onSetStructuredNote, onSetWeight }: ScoringViewProps) {
+export function ScoringView({ idea, weights, onSetScore, onSetStructuredNote, onSetCompetitorLinks, onSetWeight }: ScoringViewProps) {
+  const konkurrenz = idea.structuredNotes?.konkurrenz ?? [];
+
+  const addRow = () => {
+    onSetCompetitorLinks([...konkurrenz, { name: "", url: "" }]);
+  };
+
+  const updateRow = (index: number, field: "name" | "url", value: string) => {
+    onSetCompetitorLinks(konkurrenz.map((e, i) => (i === index ? { ...e, [field]: value } : e)));
+  };
+
+  const removeRow = (index: number) => {
+    onSetCompetitorLinks(konkurrenz.filter((_, i) => i !== index));
+  };
+
   return (
     <div className="flex-1 overflow-y-auto p-6" style={{ maxHeight: "calc(100vh - 110px)" }}>
       {/* Structured Notes */}
@@ -28,7 +43,7 @@ export function ScoringView({ idea, weights, onSetScore, onSetStructuredNote, on
         </h2>
         <div className="grid grid-cols-2 gap-3">
           {noteFields.map((field) => (
-            <div key={field.key} className={field.key === "sonstiges" ? "col-span-2" : ""}>
+            <div key={field.key}>
               <label className="text-xs font-semibold text-muted-foreground mb-1 block">
                 {field.label}
               </label>
@@ -41,6 +56,55 @@ export function ScoringView({ idea, weights, onSetScore, onSetStructuredNote, on
               />
             </div>
           ))}
+          {/* Konkurrenz-Links */}
+          <div className="col-span-2">
+            <label className="text-xs font-semibold text-muted-foreground mb-1 block">
+              Konkurrenz-Websites
+            </label>
+            <div className="bg-card border border-border rounded-lg p-2.5 space-y-2">
+              {konkurrenz.map((entry, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={entry.name}
+                    onChange={(e) => updateRow(i, "name", e.target.value)}
+                    placeholder="Name"
+                    className="w-1/3 bg-secondary border border-border rounded-md text-foreground text-sm p-1.5 outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
+                  />
+                  <input
+                    type="text"
+                    value={entry.url}
+                    onChange={(e) => updateRow(i, "url", e.target.value)}
+                    placeholder="https://konkurrent.de"
+                    className="flex-1 bg-secondary border border-border rounded-md text-foreground text-sm p-1.5 outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
+                  />
+                  {entry.url && (
+                    <a
+                      href={entry.url.startsWith("http") ? entry.url : `https://${entry.url}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-500 hover:text-blue-400 p-1"
+                    >
+                      <ExternalLink size={14} />
+                    </a>
+                  )}
+                  <button
+                    onClick={() => removeRow(i)}
+                    className="text-muted-foreground hover:text-destructive transition-all p-1"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              ))}
+              <button
+                onClick={addRow}
+                className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium bg-primary text-primary-foreground rounded-md hover:opacity-90 transition-opacity"
+              >
+                <Plus size={14} />
+                Hinzufügen
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
