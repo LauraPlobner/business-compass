@@ -54,7 +54,7 @@ export function ScoringView({ idea, weights, onSetScore, onSetNotes, onSetWeight
                 const currentWeight = weights?.[cr.id] ?? cr.weight;
                 return (
                   <div key={cr.id} className="bg-card rounded-lg border border-border p-4 shadow-monday hover:shadow-monday-md transition-shadow">
-                    <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center justify-between mb-1">
                       <span className="text-sm font-semibold text-foreground">
                         {cr.name}
                       </span>
@@ -70,7 +70,9 @@ export function ScoringView({ idea, weights, onSetScore, onSetNotes, onSetWeight
                         />
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="text-[11px] text-muted-foreground mb-3">
+                      1 = {cr.hints[1]} · 5 = {cr.hints[5]}
+                    </div>
                       {[1, 2, 3, 4, 5].map((val) => {
                         const isSelected = currentScore === val;
                         const getScoreColor = (v: number) => {
