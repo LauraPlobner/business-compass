@@ -12,19 +12,45 @@ export function SalesView({ ideas }: SalesViewProps) {
   const { scores, setScore, getComboAverage } = useSalesScores();
   const [selectedIdea, setSelectedIdea] = useState(ideas[0]?.id || "");
   const [selectedModel, setSelectedModel] = useState(salesModels[0]?.id || "");
-  const [selectedChannel, setSelectedChannel] = useState(salesChannels[0]?.id || "");
+  const [selectedChannels, setSelectedChannels] = useState<string[]>([salesChannels[0]?.id || ""]);
 
-  const currentKey = comboKey(selectedIdea, selectedModel, selectedChannel);
+  const toggleChannel = (chId: string) => {
+    setSelectedChannels((prev) =>
+      prev.includes(chId) ? (prev.length > 1 ? prev.filter((c) => c !== chId) : prev) : [...prev, chId]
+    );
+  };
+
+  const currentKey = comboKey(selectedIdea, selectedModel, selectedChannels);
   const currentScores = scores[currentKey] || {};
   const avg = getComboAverage(currentKey, salesCriteria.length);
   const grade = avg > 0 ? getGrade(avg) : null;
 
-  // Build ranking of all combos for selected idea
+  const channelLabel = selectedChannels
+    .map((id) => salesChannels.find((c) => c.id === id)?.name)
+    .filter(Boolean)
+    .join(" + ");
+
+  // Build ranking: all scored combos for selected idea
+  const allChannelCombinations = (): string[][] => {
+    const result: string[][] = [];
+    const recurse = (start: number, current: string[]) => {
+      if (current.length > 0) result.push([...current]);
+      for (let i = start; i < salesChannels.length; i++) {
+        current.push(salesChannels[i].id);
+        recurse(i + 1, current);
+        current.pop();
+      }
+    };
+    recurse(0, []);
+    return result;
+  };
+
   const combos = salesModels.flatMap((m) =>
-    salesChannels.map((ch) => {
-      const key = comboKey(selectedIdea, m.id, ch.id);
+    allChannelCombinations().map((chs) => {
+      const key = comboKey(selectedIdea, m.id, chs);
       const a = getComboAverage(key, salesCriteria.length);
-      return { model: m, channel: ch, key, avg: a };
+      const chNames = chs.map((id) => salesChannels.find((c) => c.id === id)?.name).join(" + ");
+      return { model: m, channelIds: chs, channelNames: chNames, key, avg: a };
     })
   ).filter((c) => c.avg > 0).sort((a, b) => b.avg - a.avg);
 
@@ -59,16 +85,25 @@ export function SalesView({ ideas }: SalesViewProps) {
             </select>
           </div>
           <div>
-            <label className="text-xs font-semibold text-muted-foreground mb-1.5 block">Vertriebskanal</label>
-            <select
-              value={selectedChannel}
-              onChange={(e) => setSelectedChannel(e.target.value)}
-              className="w-full bg-card border border-border rounded-lg text-foreground text-sm p-2.5 outline-none focus:ring-2 focus:ring-ring transition-all"
-            >
-              {salesChannels.map((ch) => (
-                <option key={ch.id} value={ch.id}>{ch.name}</option>
-              ))}
-            </select>
+            <label className="text-xs font-semibold text-muted-foreground mb-1.5 block">Vertriebskanäle</label>
+            <div className="flex flex-wrap gap-2">
+              {salesChannels.map((ch) => {
+                const isActive = selectedChannels.includes(ch.id);
+                return (
+                  <button
+                    key={ch.id}
+                    onClick={() => toggleChannel(ch.id)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border ${
+                      isActive
+                        ? "bg-primary text-primary-foreground border-primary shadow-monday"
+                        : "bg-card text-muted-foreground border-border hover:border-primary/40"
+                    }`}
+                  >
+                    {ch.name}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
 
@@ -77,7 +112,7 @@ export function SalesView({ ideas }: SalesViewProps) {
           <div className="flex items-center justify-between">
             <div>
               <div className="text-sm font-bold text-foreground">
-                {ideas.find((i) => i.id === selectedIdea)?.name} + {salesModels.find((m) => m.id === selectedModel)?.name} + {salesChannels.find((c) => c.id === selectedChannel)?.name}
+                {ideas.find((i) => i.id === selectedIdea)?.name} + {salesModels.find((m) => m.id === selectedModel)?.name} + {channelLabel}
               </div>
               <div className="text-xs text-muted-foreground mt-1">
                 {Object.keys(currentScores).length}/{salesCriteria.length} bewertet
@@ -152,13 +187,13 @@ export function SalesView({ ideas }: SalesViewProps) {
           <p className="text-xs text-muted-foreground italic">Noch keine Kombination bewertet.</p>
         ) : (
           <div className="space-y-2">
-            {combos.map(({ model, channel, avg: a }, idx) => {
+            {combos.map(({ model, channelIds, channelNames, avg: a }, idx) => {
               const g = getGrade(a);
-              const isActive = model.id === selectedModel && channel.id === selectedChannel;
+              const isActive = model.id === selectedModel && JSON.stringify([...channelIds].sort()) === JSON.stringify([...selectedChannels].sort());
               return (
                 <div
-                  key={`${model.id}-${channel.id}`}
-                  onClick={() => { setSelectedModel(model.id); setSelectedChannel(channel.id); }}
+                  key={`${model.id}-${channelIds.join("+")}`}
+                  onClick={() => { setSelectedModel(model.id); setSelectedChannels(channelIds); }}
                   className={`p-3 rounded-lg border cursor-pointer transition-all ${
                     isActive ? "border-primary bg-primary/5" : "border-border bg-background hover:border-primary/40"
                   }`}
@@ -171,7 +206,7 @@ export function SalesView({ ideas }: SalesViewProps) {
                       {a.toFixed(1)}
                     </span>
                   </div>
-                  <div className="text-[11px] text-muted-foreground">{channel.name}</div>
+                  <div className="text-[11px] text-muted-foreground">{channelNames}</div>
                   <div className="h-1.5 bg-secondary rounded-full overflow-hidden mt-1.5">
                     <div
                       className="h-full rounded-full transition-all duration-300"
@@ -193,9 +228,10 @@ export function SalesView({ ideas }: SalesViewProps) {
             <div className="space-y-2">
               {ideas.map((idea) => {
                 const best = salesModels.flatMap((m) =>
-                  salesChannels.map((ch) => {
-                    const key = comboKey(idea.id, m.id, ch.id);
-                    return { model: m, channel: ch, avg: getComboAverage(key, salesCriteria.length) };
+                  allChannelCombinations().map((chs) => {
+                    const key = comboKey(idea.id, m.id, chs);
+                    const chNames = chs.map((id) => salesChannels.find((c) => c.id === id)?.name).join(" + ");
+                    return { model: m, channelNames: chNames, avg: getComboAverage(key, salesCriteria.length) };
                   })
                 ).filter((c) => c.avg > 0).sort((a, b) => b.avg - a.avg)[0];
 
@@ -217,7 +253,7 @@ export function SalesView({ ideas }: SalesViewProps) {
                       <span className="text-sm font-black" style={{ color: g.color }}>{best.avg.toFixed(1)}</span>
                     </div>
                     <div className="text-[11px] text-muted-foreground">
-                      {best.model.name} + {best.channel.name}
+                      {best.model.name} + {best.channelNames}
                     </div>
                   </div>
                 );
