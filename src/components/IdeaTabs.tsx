@@ -73,7 +73,7 @@ export function IdeaTabs({ ideas, activeId, onSelect, onAdd, onRename, onDelete,
               />
             ) : (
               <span
-                onClick={(e) => {
+                onDoubleClick={(e) => {
                   e.stopPropagation();
                   setEditingId(idea.id);
                   setEditName(idea.name);
