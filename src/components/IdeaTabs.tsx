@@ -1,6 +1,6 @@
 import { useState, KeyboardEvent } from "react";
 import { Idea } from "@/data/defaultIdeas";
-import { X, Plus } from "lucide-react";
+import { X, Plus, GitCompareArrows } from "lucide-react";
 
 interface IdeaTabsProps {
   ideas: Idea[];
@@ -46,72 +46,63 @@ export function IdeaTabs({ ideas, activeId, onSelect, onAdd, onRename, onDelete,
   };
 
   return (
-    <div style={{ borderBottom: "1px solid hsl(0 0% 18%)" }} className="flex items-center gap-0 overflow-x-auto">
-      {ideas.map((idea) => (
-        <div
-          key={idea.id}
-          onClick={() => { if (!compareMode) onSelect(idea.id); }}
-          className="flex items-center gap-2 px-4 py-3 cursor-pointer select-none shrink-0 transition-colors"
-          style={{
-            borderRight: "1px solid hsl(0 0% 18%)",
-            background: !compareMode && idea.id === activeId ? "#FFD600" : "transparent",
-            color: !compareMode && idea.id === activeId ? "#080808" : "#E0E0E0",
-            fontFamily: "'Bebas Neue', sans-serif",
-            fontSize: "1.1rem",
-            letterSpacing: "0.08em",
-          }}
-        >
-          {editingId === idea.id ? (
-            <input
-              autoFocus
-              value={editName}
-              onChange={(e) => setEditName(e.target.value)}
-              onBlur={handleRename}
-              onKeyDown={handleRenameKey}
-              onClick={(e) => e.stopPropagation()}
-              style={{
-                background: "transparent",
-                border: "none",
-                borderBottom: "2px solid #FFD600",
-                color: !compareMode && idea.id === activeId ? "#080808" : "#E0E0E0",
-                fontFamily: "'Bebas Neue', sans-serif",
-                fontSize: "1.1rem",
-                outline: "none",
-                width: "120px",
-              }}
-            />
-          ) : (
-            <span
-              onDoubleClick={(e) => {
-                e.stopPropagation();
-                setEditingId(idea.id);
-                setEditName(idea.name);
-              }}
-            >
-              {idea.name}
-            </span>
-          )}
-          {ideas.length > 1 && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                if (idea.id === activeId && ideas.length > 1) {
-                  const idx = ideas.findIndex((i) => i.id === idea.id);
-                  onSelect(ideas[idx === 0 ? 1 : idx - 1].id);
-                }
-                onDelete(idea.id);
-              }}
-              className="opacity-50 hover:opacity-100 transition-opacity"
-              style={{ color: !compareMode && idea.id === activeId ? "#080808" : "#E0E0E0" }}
-            >
-              <X size={14} />
-            </button>
-          )}
-        </div>
-      ))}
+    <div className="flex items-center gap-1 px-4 py-2 bg-card border-b border-border overflow-x-auto">
+      {ideas.map((idea) => {
+        const isActive = !compareMode && idea.id === activeId;
+        return (
+          <div
+            key={idea.id}
+            onClick={() => { if (!compareMode) onSelect(idea.id); }}
+            className={`flex items-center gap-2 px-4 py-2 cursor-pointer select-none shrink-0 rounded-lg text-sm font-semibold transition-all ${
+              isActive
+                ? "bg-primary text-primary-foreground shadow-monday"
+                : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+            }`}
+          >
+            {editingId === idea.id ? (
+              <input
+                autoFocus
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                onBlur={handleRename}
+                onKeyDown={handleRenameKey}
+                onClick={(e) => e.stopPropagation()}
+                className="bg-transparent border-b-2 border-primary text-foreground text-sm font-semibold outline-none w-28"
+              />
+            ) : (
+              <span
+                onDoubleClick={(e) => {
+                  e.stopPropagation();
+                  setEditingId(idea.id);
+                  setEditName(idea.name);
+                }}
+              >
+                {idea.name}
+              </span>
+            )}
+            {ideas.length > 1 && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (idea.id === activeId && ideas.length > 1) {
+                    const idx = ideas.findIndex((i) => i.id === idea.id);
+                    onSelect(ideas[idx === 0 ? 1 : idx - 1].id);
+                  }
+                  onDelete(idea.id);
+                }}
+                className={`opacity-40 hover:opacity-100 transition-opacity rounded-full p-0.5 ${
+                  isActive ? "hover:bg-primary-foreground/20" : "hover:bg-muted"
+                }`}
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
+        );
+      })}
 
       {adding ? (
-        <div className="px-3 py-3 shrink-0">
+        <div className="px-2 shrink-0">
           <input
             autoFocus
             value={newName}
@@ -119,43 +110,29 @@ export function IdeaTabs({ ideas, activeId, onSelect, onAdd, onRename, onDelete,
             onBlur={() => { if (!newName.trim()) setAdding(false); else handleAdd(); }}
             onKeyDown={handleAddKey}
             placeholder="Name..."
-            style={{
-              background: "transparent",
-              border: "none",
-              borderBottom: "2px solid #FFD600",
-              color: "#E0E0E0",
-              fontFamily: "'Bebas Neue', sans-serif",
-              fontSize: "1.1rem",
-              outline: "none",
-              width: "120px",
-            }}
+            className="bg-transparent border-b-2 border-primary text-foreground text-sm font-semibold outline-none w-28"
           />
         </div>
       ) : (
         <button
           onClick={() => setAdding(true)}
-          className="px-3 py-3 shrink-0 transition-colors"
-          style={{ color: "#FFD600" }}
+          className="p-2 shrink-0 text-primary hover:bg-secondary rounded-lg transition-colors"
         >
           <Plus size={18} />
         </button>
       )}
 
-      <div className="ml-auto shrink-0 px-4 py-3">
+      <div className="ml-auto shrink-0">
         <button
           onClick={onToggleCompare}
-          style={{
-            background: compareMode ? "#FFD600" : "transparent",
-            color: compareMode ? "#080808" : "#FFD600",
-            border: "1px solid #FFD600",
-            fontFamily: "'Bebas Neue', sans-serif",
-            fontSize: "0.95rem",
-            padding: "4px 16px",
-            letterSpacing: "0.08em",
-            cursor: "pointer",
-          }}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+            compareMode
+              ? "bg-primary text-primary-foreground shadow-monday"
+              : "text-primary border border-primary/30 hover:bg-primary/10"
+          }`}
         >
-          {compareMode ? "← ZURÜCK" : "VERGLEICH"}
+          <GitCompareArrows size={16} />
+          {compareMode ? "← Zurück" : "Vergleich"}
         </button>
       </div>
     </div>
