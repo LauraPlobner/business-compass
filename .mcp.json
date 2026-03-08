@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "pocketbase": {
+      "command": "npx",
+      "args": ["-y", "pocketbase-mcp", "--baseUrl", "https://base.cogniteer.ai", "--adminEmail", "hello@marlonhorner.com", "--adminPassword", "Scuba-Slacks-Stowaway9-Ventricle"]
+    }
+  }
+}

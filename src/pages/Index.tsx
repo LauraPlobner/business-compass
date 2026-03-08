@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useIdeas } from "@/hooks/useIdeas";
 import { useWeights } from "@/hooks/useWeights";
 import { IdeaTabs } from "@/components/IdeaTabs";
@@ -9,19 +9,33 @@ import { SalesView } from "@/components/SalesView";
 import { RotateCcw } from "lucide-react";
 
 const Index = () => {
-  const { ideas, setScore, setNotes, setStructuredNote, addIdea, renameIdea, deleteIdea } = useIdeas();
+  const { ideas, loading, setScore, setNotes, setStructuredNote, addIdea, renameIdea, deleteIdea } = useIdeas();
   const { weights, setWeight, resetWeights } = useWeights();
-  const [activeId, setActiveId] = useState(ideas[0]?.id || "");
+  const [activeId, setActiveId] = useState("");
   const [viewMode, setViewMode] = useState<"scoring" | "compare" | "sales">("scoring");
 
+  useEffect(() => {
+    if (!loading && ideas.length > 0 && !activeId) {
+      setActiveId(ideas[0].id);
+    }
+  }, [loading, ideas, activeId]);
+
   const activeIdea = ideas.find((i) => i.id === activeId);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <p className="text-muted-foreground text-sm animate-pulse">Lade Daten…</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
       {/* Header */}
       <div className="bg-card border-b border-border px-6 py-3 flex items-center justify-between shadow-monday">
         <h1 className="text-lg font-bold text-foreground">Die Grinder Validiermaschine</h1>
-        
+
         <button
           onClick={resetWeights}
           className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
