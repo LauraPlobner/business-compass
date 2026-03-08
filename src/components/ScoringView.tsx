@@ -29,7 +29,7 @@ export function ScoringView({ idea, weights, onSetScore, onSetNotes, onSetWeight
 
       {/* Criteria by category */}
       {categories.map((cat) => {
-        const catTotalWeight = cat.criteria.reduce((s, cr) => s + (weights[cr.id] ?? cr.weight), 0);
+        const catTotalWeight = cat.criteria.reduce((s, cr) => s + (weights?.[cr.id] ?? cr.weight), 0);
         return (
           <div key={cat.id} className="mb-8">
             <div
@@ -51,7 +51,7 @@ export function ScoringView({ idea, weights, onSetScore, onSetNotes, onSetWeight
             <div className="space-y-4">
               {cat.criteria.map((cr) => {
                 const currentScore = idea.scores[cr.id];
-                const currentWeight = weights[cr.id] ?? cr.weight;
+                const currentWeight = weights?.[cr.id] ?? cr.weight;
                 return (
                   <div key={cr.id} className="bg-card rounded-lg border border-border p-4 shadow-monday hover:shadow-monday-md transition-shadow">
                     <div className="flex items-center justify-between mb-3">
