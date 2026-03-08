@@ -20,12 +20,8 @@ const Index = () => {
     <div className="flex flex-col min-h-screen bg-background">
       {/* Header */}
       <div className="bg-card border-b border-border px-6 py-3 flex items-center justify-between shadow-monday">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-            <BarChart3 className="w-5 h-5 text-primary-foreground" />
-          </div>
-          <h1 className="text-lg font-bold text-foreground">Business Idea Validator</h1>
-        </div>
+        <h1 className="text-lg font-bold text-foreground">Die Grinder Validiermaschine</h1>
+        
         <button
           onClick={resetWeights}
           className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
