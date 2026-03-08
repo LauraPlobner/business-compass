@@ -2,10 +2,7 @@ import { useEffect, useState } from "react";
 import { categories } from "@/data/criteria";
 import { Idea } from "@/data/defaultIdeas";
 import { computeCategoryScore, computeTotalScore, getGrade, getBarColor, getUnansweredCriteria } from "@/lib/scoring";
-
-interface ScoreSidebarProps {
-  idea: Idea;
-}
+import { AlertCircle } from "lucide-react";
 
 function AnimatedNumber({ value, decimals = 1 }: { value: number; decimals?: number }) {
   const [display, setDisplay] = useState(value);
@@ -29,7 +26,7 @@ function AnimatedNumber({ value, decimals = 1 }: { value: number; decimals?: num
   return <>{display.toFixed(decimals)}</>;
 }
 
-export function ScoreSidebar({ idea }: ScoreSidebarProps) {
+export function ScoreSidebar({ idea }: { idea: Idea }) {
   const totalScore = computeTotalScore(idea);
   const grade = getGrade(totalScore);
   const unanswered = getUnansweredCriteria(idea);
@@ -38,122 +35,114 @@ export function ScoreSidebar({ idea }: ScoreSidebarProps) {
 
   return (
     <div
-      className="shrink-0 overflow-y-auto p-5"
-      style={{
-        width: "320px",
-        borderLeft: "1px solid hsl(0 0% 18%)",
-        maxHeight: "calc(100vh - 52px)",
-      }}
+      className="shrink-0 overflow-y-auto p-5 bg-card border-l border-border"
+      style={{ width: "320px", maxHeight: "calc(100vh - 110px)" }}
     >
       {/* Total score */}
       <div className="text-center mb-6">
-        <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "4rem", color: grade.color, lineHeight: 1 }}>
+        <div className="text-6xl font-black leading-none" style={{ color: grade.color }}>
           <AnimatedNumber value={totalScore} />
         </div>
         <div
-          style={{
-            fontFamily: "'Bebas Neue', sans-serif",
-            fontSize: "1.5rem",
-            color: "#080808",
-            background: grade.color,
-            display: "inline-block",
-            padding: "2px 20px",
-            letterSpacing: "0.1em",
-            marginTop: "4px",
-          }}
+          className="inline-block mt-2 px-5 py-1 rounded-full text-sm font-bold text-white"
+          style={{ backgroundColor: grade.color }}
         >
           {grade.label}
         </div>
-        <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.75rem", color: "hsl(0 0% 60%)", marginTop: "8px" }}>
+        <div className="text-xs text-muted-foreground mt-2 font-medium">
           {answered}/{totalCriteria} bewertet
+        </div>
+        {/* Progress ring */}
+        <div className="mt-3 mx-auto w-full h-2 bg-secondary rounded-full overflow-hidden">
+          <div
+            className="h-full rounded-full transition-all duration-500"
+            style={{ width: `${(answered / totalCriteria) * 100}%`, backgroundColor: grade.color }}
+          />
         </div>
       </div>
 
       {/* Category breakdown */}
       <div className="mb-6">
-        <h3 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "1.1rem", color: "#FFD600", marginBottom: "12px" }}>
-          KATEGORIEN
+        <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">
+          Kategorien
         </h3>
-        {categories.map((cat) => {
-          const catScore = computeCategoryScore(idea, cat.id);
-          return (
-            <div key={cat.id} className="mb-3">
-              <div className="flex items-center justify-between mb-1">
-                <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.75rem", color: cat.color }}>
-                  {cat.emoji} {cat.name}
-                </span>
-                <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "1rem", color: cat.color }}>
-                  <AnimatedNumber value={catScore} />
-                </span>
-              </div>
-              <div style={{ height: "6px", background: "hsl(0 0% 12%)", width: "100%" }}>
-                <div
-                  style={{
-                    height: "100%",
-                    width: `${(catScore / 5) * 100}%`,
-                    background: cat.color,
-                    transition: "width 0.4s ease-out",
-                  }}
-                />
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Per-criterion bars */}
-      <div className="mb-6">
-        <h3 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "1.1rem", color: "#FFD600", marginBottom: "12px" }}>
-          EINZELBEWERTUNGEN
-        </h3>
-        {categories.map((cat) =>
-          cat.criteria.map((cr) => {
-            const score = idea.scores[cr.id] || 0;
+        <div className="space-y-3">
+          {categories.map((cat) => {
+            const catScore = computeCategoryScore(idea, cat.id);
             return (
-              <div key={cr.id} className="mb-2">
-                <div className="flex items-center justify-between">
-                  <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.65rem", color: "hsl(0 0% 60%)" }}>
-                    {cr.name}
+              <div key={cat.id} className="bg-background rounded-lg p-3">
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs font-semibold text-foreground">
+                    {cat.emoji} {cat.name}
                   </span>
-                  <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "0.85rem", color: score > 0 ? getBarColor(score) : "hsl(0 0% 30%)" }}>
-                    {score > 0 ? score : "–"}
+                  <span className="text-sm font-bold" style={{ color: cat.color }}>
+                    <AnimatedNumber value={catScore} />
                   </span>
                 </div>
-                <div style={{ height: "3px", background: "hsl(0 0% 12%)", width: "100%" }}>
+                <div className="h-2 bg-secondary rounded-full overflow-hidden">
                   <div
-                    style={{
-                      height: "100%",
-                      width: `${(score / 5) * 100}%`,
-                      background: score > 0 ? getBarColor(score) : "transparent",
-                      transition: "width 0.3s ease-out",
-                    }}
+                    className="h-full rounded-full transition-all duration-500"
+                    style={{ width: `${(catScore / 5) * 100}%`, backgroundColor: cat.color }}
                   />
                 </div>
               </div>
             );
-          })
-        )}
+          })}
+        </div>
+      </div>
+
+      {/* Per-criterion bars */}
+      <div className="mb-6">
+        <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">
+          Einzelbewertungen
+        </h3>
+        <div className="space-y-2">
+          {categories.map((cat) =>
+            cat.criteria.map((cr) => {
+              const score = idea.scores[cr.id] || 0;
+              return (
+                <div key={cr.id}>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] text-muted-foreground truncate mr-2">
+                      {cr.name}
+                    </span>
+                    <span
+                      className="text-xs font-bold"
+                      style={{ color: score > 0 ? getBarColor(score) : "hsl(var(--muted-foreground))" }}
+                    >
+                      {score > 0 ? score : "–"}
+                    </span>
+                  </div>
+                  <div className="h-1.5 bg-secondary rounded-full overflow-hidden mt-0.5">
+                    <div
+                      className="h-full rounded-full transition-all duration-300"
+                      style={{
+                        width: `${(score / 5) * 100}%`,
+                        background: score > 0 ? getBarColor(score) : "transparent",
+                      }}
+                    />
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
       </div>
 
       {/* Unanswered */}
       {unanswered.length > 0 && (
         <div>
-          <h3 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "1.1rem", color: "#FF4444", marginBottom: "8px" }}>
-            OFFEN ({unanswered.length})
+          <h3 className="text-xs font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5 text-destructive">
+            <AlertCircle size={14} />
+            Offen ({unanswered.length})
           </h3>
-          {unanswered.map((u, i) => (
-            <div
-              key={i}
-              style={{
-                fontFamily: "'DM Mono', monospace",
-                fontSize: "0.65rem",
-                color: "hsl(0 0% 45%)",
-                marginBottom: "2px",
-              }}
-            >
-              {u.criterionName}
-            </div>
-          ))}
+          <div className="space-y-1">
+            {unanswered.map((u, i) => (
+              <div key={i} className="text-[11px] text-muted-foreground">
+                {u.criterionName}
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>

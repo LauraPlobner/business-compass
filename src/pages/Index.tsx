@@ -4,6 +4,7 @@ import { IdeaTabs } from "@/components/IdeaTabs";
 import { ScoringView } from "@/components/ScoringView";
 import { ScoreSidebar } from "@/components/ScoreSidebar";
 import { CompareView } from "@/components/CompareView";
+import { BarChart3 } from "lucide-react";
 
 const Index = () => {
   const { ideas, setScore, setNotes, addIdea, renameIdea, deleteIdea } = useIdeas();
@@ -13,7 +14,18 @@ const Index = () => {
   const activeIdea = ideas.find((i) => i.id === activeId);
 
   return (
-    <div className="flex flex-col" style={{ height: "100vh", background: "#080808" }}>
+    <div className="flex flex-col min-h-screen bg-background">
+      {/* Header */}
+      <div className="bg-card border-b border-border px-6 py-3 flex items-center justify-between shadow-monday">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+            <BarChart3 className="w-5 h-5 text-primary-foreground" />
+          </div>
+          <h1 className="text-lg font-bold text-foreground">Business Idea Validator</h1>
+        </div>
+      </div>
+
+      {/* Tabs */}
       <IdeaTabs
         ideas={ideas}
         activeId={activeId}
@@ -25,6 +37,7 @@ const Index = () => {
         onToggleCompare={() => setCompareMode(!compareMode)}
       />
 
+      {/* Content */}
       {compareMode ? (
         <CompareView
           ideas={ideas}

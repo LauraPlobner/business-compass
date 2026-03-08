@@ -31,16 +31,16 @@ export function computeTotalScore(idea: Idea): number {
   return totalWeight > 0 ? weightedSum / totalWeight : 0;
 }
 
-export function getGrade(score: number): { label: string; color: string } {
-  if (score >= 4.2) return { label: "GO", color: "#00FF87" };
-  if (score >= 3.2) return { label: "MAYBE", color: "#FFD600" };
-  return { label: "NO-GO", color: "#FF4444" };
+export function getGrade(score: number): { label: string; color: string; bg: string } {
+  if (score >= 4.2) return { label: "GO", color: "hsl(152, 69%, 53%)", bg: "hsl(152, 69%, 95%)" };
+  if (score >= 3.2) return { label: "MAYBE", color: "hsl(39, 100%, 50%)", bg: "hsl(39, 100%, 95%)" };
+  return { label: "NO-GO", color: "hsl(0, 80%, 60%)", bg: "hsl(0, 80%, 95%)" };
 }
 
 export function getBarColor(score: number): string {
-  if (score >= 4) return "#00FF87";
-  if (score >= 3) return "#FFD600";
-  return "#FF6B35";
+  if (score >= 4) return "hsl(152, 69%, 53%)";
+  if (score >= 3) return "hsl(39, 100%, 50%)";
+  return "hsl(20, 95%, 55%)";
 }
 
 export function getUnansweredCriteria(idea: Idea): { categoryName: string; criterionName: string }[] {

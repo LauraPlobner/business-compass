@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700;800;900&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,50 +6,57 @@
 
 @layer base {
   :root {
-    --background: 0 0% 3.1%;
-    --foreground: 0 0% 87.8%;
+    --background: 220 20% 97%;
+    --foreground: 220 20% 14%;
 
-    --card: 0 0% 6%;
-    --card-foreground: 0 0% 87.8%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 20% 14%;
 
-    --popover: 0 0% 6%;
-    --popover-foreground: 0 0% 87.8%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 20% 14%;
 
-    --primary: 52 100% 50%;
-    --primary-foreground: 0 0% 3.1%;
+    --primary: 211 100% 50%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 0 0% 12%;
-    --secondary-foreground: 0 0% 87.8%;
+    --secondary: 220 14% 94%;
+    --secondary-foreground: 220 20% 30%;
 
-    --muted: 0 0% 12%;
-    --muted-foreground: 0 0% 60%;
+    --muted: 220 14% 94%;
+    --muted-foreground: 220 10% 50%;
 
-    --accent: 52 100% 50%;
-    --accent-foreground: 0 0% 3.1%;
+    --accent: 220 14% 94%;
+    --accent-foreground: 220 20% 14%;
 
-    --destructive: 0 100% 63%;
-    --destructive-foreground: 0 0% 87.8%;
+    --destructive: 0 80% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 18%;
-    --input: 0 0% 18%;
-    --ring: 52 100% 50%;
+    --border: 220 13% 90%;
+    --input: 220 13% 90%;
+    --ring: 211 100% 50%;
 
-    --radius: 0rem;
+    --radius: 0.5rem;
 
-    --sidebar-background: 0 0% 5%;
-    --sidebar-foreground: 0 0% 87.8%;
-    --sidebar-primary: 52 100% 50%;
-    --sidebar-primary-foreground: 0 0% 3.1%;
-    --sidebar-accent: 0 0% 12%;
-    --sidebar-accent-foreground: 0 0% 87.8%;
-    --sidebar-border: 0 0% 18%;
-    --sidebar-ring: 52 100% 50%;
+    --sidebar-background: 225 25% 18%;
+    --sidebar-foreground: 220 20% 94%;
+    --sidebar-primary: 211 100% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 225 25% 24%;
+    --sidebar-accent-foreground: 220 20% 94%;
+    --sidebar-border: 225 20% 28%;
+    --sidebar-ring: 211 100% 55%;
 
-    --color-finanzen: #00FF87;
-    --color-lifestyle: #FF6B35;
-    --color-markt: #00B4FF;
-    --color-operations: #CC88FF;
-    --color-risiken: #FF4444;
+    --color-finanzen: 152 100% 42%;
+    --color-lifestyle: 20 100% 55%;
+    --color-markt: 205 100% 50%;
+    --color-operations: 264 100% 70%;
+    --color-risiken: 0 80% 60%;
+
+    --monday-green: 152 69% 53%;
+    --monday-yellow: 39 100% 60%;
+    --monday-red: 0 80% 60%;
+    --monday-blue: 211 100% 50%;
+    --monday-purple: 264 70% 62%;
+    --monday-orange: 20 95% 55%;
   }
 }
 
@@ -60,11 +67,6 @@
 
   body {
     @apply bg-background text-foreground;
-    font-family: 'DM Mono', monospace;
-  }
-
-  h1, h2, h3, h4, h5, h6 {
-    font-family: 'Bebas Neue', sans-serif;
-    letter-spacing: 0.05em;
+    font-family: 'Figtree', sans-serif;
   }
 }
