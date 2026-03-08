@@ -19,7 +19,7 @@ export function CompareView({ ideas, onSelectIdea }: CompareViewProps) {
     .sort((a, b) => b.score - a.score);
 
   const radarData = categories.map((cat) => {
-    const entry: Record<string, string | number> = { category: cat.emoji + " " + cat.name };
+    const entry: Record<string, string | number> = { category: cat.name };
     ideas.forEach((idea) => {
       entry[idea.name] = parseFloat(computeCategoryScore(idea, cat.id).toFixed(2));
     });
@@ -119,7 +119,7 @@ export function CompareView({ ideas, onSelectIdea }: CompareViewProps) {
         {/* Radar Chart */}
         <div className="bg-card rounded-xl border border-border p-6 shadow-monday">
           <h2 className="text-base font-bold text-foreground mb-4">
-            📊 Kategorie-Radar
+            Kategorie-Radar
           </h2>
           <div style={{ width: "100%", height: "400px" }}>
             <ResponsiveContainer>

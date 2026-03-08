@@ -19,7 +19,7 @@ export const categories: Category[] = [
   {
     id: "finanzen",
     name: "Finanzen",
-    emoji: "💰",
+    emoji: "",
     weight: 35,
     color: "hsl(152, 69%, 43%)",
     lightColor: "hsl(152, 69%, 94%)",
@@ -35,7 +35,7 @@ export const categories: Category[] = [
   {
     id: "lifestyle",
     name: "Lifestyle",
-    emoji: "🧭",
+    emoji: "",
     weight: 15,
     color: "hsl(20, 95%, 55%)",
     lightColor: "hsl(20, 95%, 94%)",
@@ -48,7 +48,7 @@ export const categories: Category[] = [
   {
     id: "markt",
     name: "Markt & Wettbewerb",
-    emoji: "📈",
+    emoji: "",
     weight: 20,
     color: "hsl(211, 100%, 50%)",
     lightColor: "hsl(211, 100%, 94%)",
@@ -62,7 +62,7 @@ export const categories: Category[] = [
   {
     id: "operations",
     name: "Operations",
-    emoji: "⚙️",
+    emoji: "",
     weight: 15,
     color: "hsl(264, 70%, 62%)",
     lightColor: "hsl(264, 70%, 94%)",
@@ -76,7 +76,7 @@ export const categories: Category[] = [
   {
     id: "risiken",
     name: "Risiken & Strategie",
-    emoji: "⚠️",
+    emoji: "",
     weight: 15,
     color: "hsl(0, 80%, 60%)",
     lightColor: "hsl(0, 80%, 94%)",
