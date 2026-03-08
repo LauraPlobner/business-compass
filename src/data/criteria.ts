@@ -41,7 +41,7 @@ export const categories: Category[] = [
     lightColor: "hsl(20, 95%, 94%)",
     criteria: [
       { id: "motivation", name: "Motivation 2–3 Jahre", weight: 7, hints: { 1: "Würde ich hassen", 2: "Ungern", 3: "Geht so", 4: "Gerne", 5: "Würde ich lieben" } },
-      { id: "zeitaufwand", name: "Zeitaufwand", weight: 5, hints: { 1: "Vollzeit+", 2: "Vollzeit", 3: "30–40h/Woche", 4: "20–30h/Woche", 5: "<20h/Woche" } },
+      { id: "zeitaufwand", name: "Zeiteffizienz", weight: 5, hints: { 1: "Vollzeit+", 2: "Vollzeit", 3: "30–40h/Woche", 4: "20–30h/Woche", 5: "<20h/Woche" } },
       { id: "learning_curve", name: "Learning Curve", weight: 3, hints: { 1: "Alles neu lernen", 2: "Vieles neu", 3: "Einiges bekannt", 4: "Meist bekannt", 5: "Können wir bereits" } },
     ],
   },
