@@ -100,7 +100,7 @@ export function ScoreSidebar({ idea, weights }: { idea: Idea; weights: CustomWei
           {categories.map((cat) =>
             cat.criteria.map((cr) => {
               const score = idea.scores[cr.id] || 0;
-              const w = weights[cr.id] ?? cr.weight;
+              const w = weights?.[cr.id] ?? cr.weight;
               return (
                 <div key={cr.id}>
                   <div className="flex items-center justify-between">
