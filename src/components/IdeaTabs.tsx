@@ -6,7 +6,7 @@ interface IdeaTabsProps {
   ideas: Idea[];
   activeId: string;
   onSelect: (id: string) => void;
-  onAdd: (name: string) => string;
+  onAdd: (name: string) => Promise<string>;
   onRename: (id: string, name: string) => void;
   onDelete: (id: string) => void;
   compareMode: boolean;
@@ -21,9 +21,9 @@ export function IdeaTabs({ ideas, activeId, onSelect, onAdd, onRename, onDelete,
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (newName.trim()) {
-      const id = onAdd(newName.trim());
+      const id = await onAdd(newName.trim());
       onSelect(id);
       setNewName("");
       setAdding(false);
