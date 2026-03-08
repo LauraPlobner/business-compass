@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useIdeas } from "@/hooks/useIdeas";
 import { useWeights } from "@/hooks/useWeights";
 import { IdeaTabs } from "@/components/IdeaTabs";
@@ -13,6 +13,12 @@ const Index = () => {
   const { weights, setWeight, resetWeights } = useWeights();
   const [activeId, setActiveId] = useState(ideas[0]?.id || "");
   const [viewMode, setViewMode] = useState<"scoring" | "compare" | "sales">("scoring");
+  const [projectTitle, setProjectTitle] = useState(() => localStorage.getItem("biv-title") || "Die Grinder Validiermaschine");
+  const [editingTitle, setEditingTitle] = useState(false);
+
+  useEffect(() => {
+    localStorage.setItem("biv-title", projectTitle);
+  }, [projectTitle]);
 
   const activeIdea = ideas.find((i) => i.id === activeId);
 
@@ -20,7 +26,23 @@ const Index = () => {
     <div className="flex flex-col min-h-screen bg-background">
       {/* Header */}
       <div className="bg-card border-b border-border px-6 py-3 flex items-center justify-between shadow-monday">
-        <h1 className="text-lg font-bold text-foreground">Die Grinder Validiermaschine</h1>
+        {editingTitle ? (
+          <input
+            autoFocus
+            value={projectTitle}
+            onChange={(e) => setProjectTitle(e.target.value)}
+            onBlur={() => setEditingTitle(false)}
+            onKeyDown={(e) => { if (e.key === "Enter") setEditingTitle(false); if (e.key === "Escape") setEditingTitle(false); }}
+            className="text-lg font-bold text-foreground bg-transparent border-b-2 border-primary outline-none"
+          />
+        ) : (
+          <h1
+            onClick={() => setEditingTitle(true)}
+            className="text-lg font-bold text-foreground cursor-pointer hover:text-primary transition-colors"
+          >
+            {projectTitle}
+          </h1>
+        )}
         
         <button
           onClick={resetWeights}
