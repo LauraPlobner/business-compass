@@ -63,7 +63,7 @@ const Index = () => {
             idea={activeIdea}
             weights={weights}
             onSetScore={(crId, val) => setScore(activeIdea.id, crId, val)}
-            onSetNotes={(notes) => setNotes(activeIdea.id, notes)}
+            onSetStructuredNote={(field, value) => setStructuredNote(activeIdea.id, field, value)}
             onSetWeight={setWeight}
           />
           <ScoreSidebar idea={activeIdea} weights={weights} />
