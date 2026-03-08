@@ -13,7 +13,7 @@ export function ScoringView({ idea, onSetScore, onSetNotes }: ScoringViewProps) 
       {/* Notes */}
       <div className="mb-8">
         <h2 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-2">
-          📝 Kontext & Notizen
+          Kontext & Notizen
         </h2>
         <textarea
           value={idea.notes}
@@ -31,7 +31,7 @@ export function ScoringView({ idea, onSetScore, onSetNotes }: ScoringViewProps) 
             className="flex items-center gap-3 mb-4 pb-3 border-b-2"
             style={{ borderColor: cat.color }}
           >
-            <span className="text-xl">{cat.emoji}</span>
+            {cat.emoji && <span className="text-xl">{cat.emoji}</span>}
             <h2 className="text-base font-bold" style={{ color: cat.color }}>
               {cat.name}
             </h2>

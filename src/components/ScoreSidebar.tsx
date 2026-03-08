@@ -73,7 +73,7 @@ export function ScoreSidebar({ idea }: { idea: Idea }) {
               <div key={cat.id} className="bg-background rounded-lg p-3">
                 <div className="flex items-center justify-between mb-1.5">
                   <span className="text-xs font-semibold text-foreground">
-                    {cat.emoji} {cat.name}
+                    {cat.name}
                   </span>
                   <span className="text-sm font-bold" style={{ color: cat.color }}>
                     <AnimatedNumber value={catScore} />
