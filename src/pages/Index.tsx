@@ -5,13 +5,14 @@ import { IdeaTabs } from "@/components/IdeaTabs";
 import { ScoringView } from "@/components/ScoringView";
 import { ScoreSidebar } from "@/components/ScoreSidebar";
 import { CompareView } from "@/components/CompareView";
+import { SalesView } from "@/components/SalesView";
 import { BarChart3, RotateCcw } from "lucide-react";
 
 const Index = () => {
   const { ideas, setScore, setNotes, setStructuredNote, addIdea, renameIdea, deleteIdea } = useIdeas();
   const { weights, setWeight, resetWeights } = useWeights();
   const [activeId, setActiveId] = useState(ideas[0]?.id || "");
-  const [compareMode, setCompareMode] = useState(false);
+  const [viewMode, setViewMode] = useState<"scoring" | "compare" | "sales">("scoring");
 
   const activeIdea = ideas.find((i) => i.id === activeId);
 
@@ -39,24 +40,28 @@ const Index = () => {
       <IdeaTabs
         ideas={ideas}
         activeId={activeId}
-        onSelect={setActiveId}
+        onSelect={(id) => { setActiveId(id); setViewMode("scoring"); }}
         onAdd={addIdea}
         onRename={renameIdea}
         onDelete={deleteIdea}
-        compareMode={compareMode}
-        onToggleCompare={() => setCompareMode(!compareMode)}
+        compareMode={viewMode === "compare"}
+        salesMode={viewMode === "sales"}
+        onToggleCompare={() => setViewMode(viewMode === "compare" ? "scoring" : "compare")}
+        onToggleSales={() => setViewMode(viewMode === "sales" ? "scoring" : "sales")}
       />
 
       {/* Content */}
-      {compareMode ? (
+      {viewMode === "compare" ? (
         <CompareView
           ideas={ideas}
           weights={weights}
           onSelectIdea={(id) => {
             setActiveId(id);
-            setCompareMode(false);
+            setViewMode("scoring");
           }}
         />
+      ) : viewMode === "sales" ? (
+        <SalesView ideas={ideas} />
       ) : activeIdea ? (
         <div className="flex flex-1 overflow-hidden">
           <ScoringView
