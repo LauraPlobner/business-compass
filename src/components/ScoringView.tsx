@@ -72,7 +72,7 @@ export function ScoringView({ idea, weights, onSetScore, onSetNotes, onSetWeight
                     </div>
                     <div className="text-[11px] text-muted-foreground mb-3">
                       1 = {cr.hints[1]} · 5 = {cr.hints[5]}
-                    </div>
+                    <div className="flex items-center gap-2">
                       {[1, 2, 3, 4, 5].map((val) => {
                         const isSelected = currentScore === val;
                         const getScoreColor = (v: number) => {
