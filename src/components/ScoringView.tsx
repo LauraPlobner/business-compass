@@ -1,30 +1,47 @@
 import { categories } from "@/data/criteria";
-import { Idea } from "@/data/defaultIdeas";
+import { Idea, IdeaNotesType } from "@/data/defaultIdeas";
 import { CustomWeights } from "@/hooks/useWeights";
 
 interface ScoringViewProps {
   idea: Idea;
   weights: CustomWeights;
   onSetScore: (criterionId: string, value: number) => void;
-  onSetNotes: (notes: string) => void;
+  onSetStructuredNote: (field: keyof IdeaNotesType, value: string) => void;
   onSetWeight: (criterionId: string, value: number) => void;
 }
 
-export function ScoringView({ idea, weights, onSetScore, onSetNotes, onSetWeight }: ScoringViewProps) {
+const noteFields: { key: keyof IdeaNotesType; label: string; placeholder: string }[] = [
+  { key: "zielgruppe", label: "Zielgruppe", placeholder: "Wer sind die Kunden?" },
+  { key: "pricing", label: "Pricing", placeholder: "Preismodell, Umsatz pro Kunde..." },
+  { key: "status", label: "Status / Fortschritt", placeholder: "Wie weit ist die Idee?" },
+  { key: "fragen", label: "Offene Fragen", placeholder: "Was muss noch geklärt werden?" },
+  { key: "sonstiges", label: "Sonstiges", placeholder: "Weitere Notizen..." },
+];
+
+export function ScoringView({ idea, weights, onSetScore, onSetStructuredNote, onSetWeight }: ScoringViewProps) {
   return (
     <div className="flex-1 overflow-y-auto p-6" style={{ maxHeight: "calc(100vh - 110px)" }}>
-      {/* Notes */}
+      {/* Structured Notes */}
       <div className="mb-8">
-        <h2 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-2">
+        <h2 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-3">
           Kontext & Notizen
         </h2>
-        <textarea
-          value={idea.notes}
-          onChange={(e) => onSetNotes(e.target.value)}
-          rows={4}
-          className="w-full bg-card border border-border rounded-lg text-foreground text-sm p-3 resize-y outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
-          placeholder="Notizen zur Idee..."
-        />
+        <div className="grid grid-cols-2 gap-3">
+          {noteFields.map((field) => (
+            <div key={field.key} className={field.key === "sonstiges" ? "col-span-2" : ""}>
+              <label className="text-xs font-semibold text-muted-foreground mb-1 block">
+                {field.label}
+              </label>
+              <textarea
+                value={idea.structuredNotes?.[field.key] ?? ""}
+                onChange={(e) => onSetStructuredNote(field.key, e.target.value)}
+                rows={2}
+                className="w-full bg-card border border-border rounded-lg text-foreground text-sm p-2.5 resize-y outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
+                placeholder={field.placeholder}
+              />
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Criteria by category */}
