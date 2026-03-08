@@ -1,12 +1,28 @@
 import { useState, useEffect, useCallback } from "react";
-import { Idea, defaultIdeas } from "@/data/defaultIdeas";
+import { Idea, defaultIdeas, emptyNotes, IdeaNotesType } from "@/data/defaultIdeas";
 
 const STORAGE_KEY = "biv-ideas";
+
+function migrateIdea(idea: any): Idea {
+  if (!idea.structuredNotes) {
+    return {
+      ...idea,
+      structuredNotes: {
+        zielgruppe: "",
+        pricing: "",
+        status: "",
+        fragen: "",
+        sonstiges: idea.notes || "",
+      },
+    };
+  }
+  return idea;
+}
 
 function loadIdeas(): Idea[] {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) return JSON.parse(stored);
+    if (stored) return JSON.parse(stored).map(migrateIdea);
   } catch {}
   return defaultIdeas;
 }
@@ -30,9 +46,19 @@ export function useIdeas() {
     setIdeas((prev) => prev.map((idea) => (idea.id === ideaId ? { ...idea, notes } : idea)));
   }, []);
 
+  const setStructuredNote = useCallback((ideaId: string, field: keyof IdeaNotesType, value: string) => {
+    setIdeas((prev) =>
+      prev.map((idea) =>
+        idea.id === ideaId
+          ? { ...idea, structuredNotes: { ...idea.structuredNotes, [field]: value } }
+          : idea
+      )
+    );
+  }, []);
+
   const addIdea = useCallback((name: string) => {
     const id = `idea-${Date.now()}`;
-    setIdeas((prev) => [...prev, { id, name, notes: "", scores: {} }]);
+    setIdeas((prev) => [...prev, { id, name, notes: "", structuredNotes: { ...emptyNotes }, scores: {} }]);
     return id;
   }, []);
 
@@ -44,5 +70,5 @@ export function useIdeas() {
     setIdeas((prev) => prev.filter((idea) => idea.id !== ideaId));
   }, []);
 
-  return { ideas, setScore, setNotes, addIdea, renameIdea, deleteIdea };
+  return { ideas, setScore, setNotes, setStructuredNote, addIdea, renameIdea, deleteIdea };
 }
