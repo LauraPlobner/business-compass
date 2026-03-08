@@ -69,7 +69,7 @@ export const categories: Category[] = [
     criteria: [
       { id: "time_to_launch", name: "Time to Launch", weight: 5, hints: { 1: ">12 Monate", 2: "6–12 Monate", 3: "2–6 Monate", 4: "1–2 Monate", 5: "<4 Wochen" } },
       { id: "abhaengigkeiten", name: "Abhängigkeiten", weight: 3, hints: { 1: "Viele externe Abhängigkeiten", 2: "Einige externe", 3: "Wenige", 4: "Kaum", 5: "Vollständig autonom" } },
-      { id: "selbst_baubar", name: "Selbst baubar vs. outsourcen", weight: 4, hints: { 1: "Alles outsourcen", 2: "Vieles outsourcen", 3: "Mix", 4: "Vieles selbst", 5: "Alles selbst machbar" } },
+      { id: "selbst_baubar", name: "Eigenleistung möglich", weight: 4, hints: { 1: "Alles outsourcen", 2: "Vieles outsourcen", 3: "Mix", 4: "Vieles selbst", 5: "Alles selbst machbar" } },
       { id: "support", name: "Support & Maintenance", weight: 3, hints: { 1: "Sehr hoher laufender Aufwand", 2: "Hoher Aufwand", 3: "Moderate Pflege", 4: "Wenig Pflege", 5: "Läuft selbständig" } },
     ],
   },
