@@ -9,7 +9,7 @@ import { SalesView } from "@/components/SalesView";
 import { RotateCcw } from "lucide-react";
 
 const Index = () => {
-  const { ideas, loading, setScore, setNotes, setStructuredNote, addIdea, renameIdea, deleteIdea } = useIdeas();
+  const { ideas, loading, error, setScore, setNotes, setStructuredNote, addIdea, renameIdea, deleteIdea } = useIdeas();
   const { weights, setWeight, resetWeights } = useWeights();
   const [activeId, setActiveId] = useState("");
   const [viewMode, setViewMode] = useState<"scoring" | "compare" | "sales">("scoring");
@@ -26,6 +26,17 @@ const Index = () => {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
         <p className="text-muted-foreground text-sm animate-pulse">Lade Daten…</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="text-center space-y-2">
+          <p className="text-destructive font-semibold">Verbindungsfehler</p>
+          <p className="text-muted-foreground text-sm font-mono">{error}</p>
+        </div>
       </div>
     );
   }

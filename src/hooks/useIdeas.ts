@@ -15,6 +15,7 @@ function recordToIdea(r: Record<string, unknown>): Idea {
 export function useIdeas() {
   const [ideas, setIdeas] = useState<Idea[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const ideasRef = useRef<Idea[]>([]);
 
   useEffect(() => {
@@ -40,6 +41,10 @@ export function useIdeas() {
         } else {
           setIdeas(records.map(recordToIdea));
         }
+      })
+      .catch((e) => {
+        console.error("[useIdeas] Ladefehler:", e);
+        setError(String(e?.message ?? e));
       })
       .finally(() => setLoading(false));
   }, []);
@@ -96,5 +101,5 @@ export function useIdeas() {
     await pb.collection("ideas").delete(ideaId);
   }, []);
 
-  return { ideas, loading, setScore, setNotes, setStructuredNote, addIdea, renameIdea, deleteIdea };
+  return { ideas, loading, error, setScore, setNotes, setStructuredNote, addIdea, renameIdea, deleteIdea };
 }
