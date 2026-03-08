@@ -1,6 +1,16 @@
 import { useState, KeyboardEvent } from "react";
 import { Idea } from "@/data/defaultIdeas";
 import { X, Plus, GitCompareArrows, ShoppingCart } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface IdeaTabsProps {
   ideas: Idea[];
@@ -20,6 +30,7 @@ export function IdeaTabs({ ideas, activeId, onSelect, onAdd, onRename, onDelete,
   const [newName, setNewName] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 
   const handleAdd = async () => {
     if (newName.trim()) {
@@ -48,6 +59,7 @@ export function IdeaTabs({ ideas, activeId, onSelect, onAdd, onRename, onDelete,
   };
 
   return (
+    <>
     <div className="flex items-center gap-1 px-4 py-2 bg-card border-b border-border overflow-x-auto">
       {ideas.map((idea) => {
         const isActive = !compareMode && idea.id === activeId;
@@ -86,11 +98,7 @@ export function IdeaTabs({ ideas, activeId, onSelect, onAdd, onRename, onDelete,
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  if (idea.id === activeId && ideas.length > 1) {
-                    const idx = ideas.findIndex((i) => i.id === idea.id);
-                    onSelect(ideas[idx === 0 ? 1 : idx - 1].id);
-                  }
-                  onDelete(idea.id);
+                  setDeleteTargetId(idea.id);
                 }}
                 className={`opacity-40 hover:opacity-100 transition-opacity rounded-full p-0.5 ${
                   isActive ? "hover:bg-primary-foreground/20" : "hover:bg-muted"
@@ -149,5 +157,35 @@ export function IdeaTabs({ ideas, activeId, onSelect, onAdd, onRename, onDelete,
         </button>
       </div>
     </div>
+
+    <AlertDialog open={deleteTargetId !== null} onOpenChange={(open) => { if (!open) setDeleteTargetId(null); }}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Idee löschen?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Diese Idee und alle zugehörigen Daten werden unwiderruflich gelöscht.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+          <AlertDialogAction
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            onClick={() => {
+              if (deleteTargetId) {
+                if (deleteTargetId === activeId && ideas.length > 1) {
+                  const idx = ideas.findIndex((i) => i.id === deleteTargetId);
+                  onSelect(ideas[idx === 0 ? 1 : idx - 1].id);
+                }
+                onDelete(deleteTargetId);
+                setDeleteTargetId(null);
+              }
+            }}
+          >
+            Löschen
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 }
