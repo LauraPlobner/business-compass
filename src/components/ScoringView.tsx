@@ -1,13 +1,16 @@
 import { categories } from "@/data/criteria";
 import { Idea } from "@/data/defaultIdeas";
+import { CustomWeights } from "@/hooks/useWeights";
 
 interface ScoringViewProps {
   idea: Idea;
+  weights: CustomWeights;
   onSetScore: (criterionId: string, value: number) => void;
   onSetNotes: (notes: string) => void;
+  onSetWeight: (criterionId: string, value: number) => void;
 }
 
-export function ScoringView({ idea, onSetScore, onSetNotes }: ScoringViewProps) {
+export function ScoringView({ idea, weights, onSetScore, onSetNotes, onSetWeight }: ScoringViewProps) {
   return (
     <div className="flex-1 overflow-y-auto p-6" style={{ maxHeight: "calc(100vh - 110px)" }}>
       {/* Notes */}
@@ -25,74 +28,86 @@ export function ScoringView({ idea, onSetScore, onSetNotes }: ScoringViewProps) 
       </div>
 
       {/* Criteria by category */}
-      {categories.map((cat) => (
-        <div key={cat.id} className="mb-8">
-          <div
-            className="flex items-center gap-3 mb-4 pb-3 border-b-2"
-            style={{ borderColor: cat.color }}
-          >
-            {cat.emoji && <span className="text-xl">{cat.emoji}</span>}
-            <h2 className="text-base font-bold" style={{ color: cat.color }}>
-              {cat.name}
-            </h2>
-            <span
-              className="text-xs font-bold px-2.5 py-0.5 rounded-full text-white"
-              style={{ backgroundColor: cat.color }}
+      {categories.map((cat) => {
+        const catTotalWeight = cat.criteria.reduce((s, cr) => s + (weights[cr.id] ?? cr.weight), 0);
+        return (
+          <div key={cat.id} className="mb-8">
+            <div
+              className="flex items-center gap-3 mb-4 pb-3 border-b-2"
+              style={{ borderColor: cat.color }}
             >
-              {cat.weight}%
-            </span>
-          </div>
+              {cat.emoji && <span className="text-xl">{cat.emoji}</span>}
+              <h2 className="text-base font-bold" style={{ color: cat.color }}>
+                {cat.name}
+              </h2>
+              <span
+                className="text-xs font-bold px-2.5 py-0.5 rounded-full text-white"
+                style={{ backgroundColor: cat.color }}
+              >
+                {catTotalWeight} Pkt.
+              </span>
+            </div>
 
-          <div className="space-y-4">
-            {cat.criteria.map((cr) => {
-              const currentScore = idea.scores[cr.id];
-              return (
-                <div key={cr.id} className="bg-card rounded-lg border border-border p-4 shadow-monday hover:shadow-monday-md transition-shadow">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-sm font-semibold text-foreground">
-                      {cr.name}
-                    </span>
-                    <span className="text-xs text-muted-foreground font-medium">
-                      Gewicht: {cr.weight}%
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {[1, 2, 3, 4, 5].map((val) => {
-                      const isSelected = currentScore === val;
-                      const getScoreColor = (v: number) => {
-                        if (v <= 2) return { bg: "hsl(0, 80%, 60%)", light: "hsl(0, 80%, 95%)" };
-                        if (v === 3) return { bg: "hsl(39, 100%, 50%)", light: "hsl(39, 100%, 94%)" };
-                        return { bg: "hsl(152, 69%, 43%)", light: "hsl(152, 69%, 94%)" };
-                      };
-                      const colors = getScoreColor(val);
-                      return (
-                        <button
-                          key={val}
-                          onClick={() => onSetScore(cr.id, val)}
-                          className="w-10 h-10 rounded-lg text-sm font-bold transition-all"
-                          style={{
-                            background: isSelected ? colors.bg : colors.light,
-                            color: isSelected ? "white" : colors.bg,
-                            border: `2px solid ${isSelected ? colors.bg : "transparent"}`,
-                            transform: isSelected ? "scale(1.1)" : "scale(1)",
-                          }}
-                        >
-                          {val}
-                        </button>
-                      );
-                    })}
-                    {currentScore != null && (
-                      <span className="text-xs text-muted-foreground ml-3 italic">
-                        {cr.hints[currentScore]}
+            <div className="space-y-4">
+              {cat.criteria.map((cr) => {
+                const currentScore = idea.scores[cr.id];
+                const currentWeight = weights[cr.id] ?? cr.weight;
+                return (
+                  <div key={cr.id} className="bg-card rounded-lg border border-border p-4 shadow-monday hover:shadow-monday-md transition-shadow">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-sm font-semibold text-foreground">
+                        {cr.name}
                       </span>
-                    )}
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs text-muted-foreground">Gewicht:</span>
+                        <input
+                          type="number"
+                          min={0}
+                          max={100}
+                          value={currentWeight}
+                          onChange={(e) => onSetWeight(cr.id, parseInt(e.target.value) || 0)}
+                          className="w-12 h-7 text-center text-xs font-bold bg-secondary border border-border rounded-md text-foreground outline-none focus:ring-2 focus:ring-ring transition-all"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {[1, 2, 3, 4, 5].map((val) => {
+                        const isSelected = currentScore === val;
+                        const getScoreColor = (v: number) => {
+                          if (v <= 2) return { bg: "hsl(0, 80%, 60%)", light: "hsl(0, 80%, 95%)" };
+                          if (v === 3) return { bg: "hsl(39, 100%, 50%)", light: "hsl(39, 100%, 94%)" };
+                          return { bg: "hsl(152, 69%, 43%)", light: "hsl(152, 69%, 94%)" };
+                        };
+                        const colors = getScoreColor(val);
+                        return (
+                          <button
+                            key={val}
+                            onClick={() => onSetScore(cr.id, val)}
+                            className="w-10 h-10 rounded-lg text-sm font-bold transition-all"
+                            style={{
+                              background: isSelected ? colors.bg : colors.light,
+                              color: isSelected ? "white" : colors.bg,
+                              border: `2px solid ${isSelected ? colors.bg : "transparent"}`,
+                              transform: isSelected ? "scale(1.1)" : "scale(1)",
+                            }}
+                          >
+                            {val}
+                          </button>
+                        );
+                      })}
+                      {currentScore != null && (
+                        <span className="text-xs text-muted-foreground ml-3 italic">
+                          {cr.hints[currentScore]}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

@@ -5,23 +5,25 @@ import { computeCategoryScore, computeTotalScore, getGrade } from "@/lib/scoring
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Legend } from "recharts";
 import html2canvas from "html2canvas";
 import { Download, Trophy } from "lucide-react";
+import { CustomWeights } from "@/hooks/useWeights";
 
 interface CompareViewProps {
   ideas: Idea[];
+  weights: CustomWeights;
   onSelectIdea: (id: string) => void;
 }
 
-export function CompareView({ ideas, onSelectIdea }: CompareViewProps) {
+export function CompareView({ ideas, weights, onSelectIdea }: CompareViewProps) {
   const exportRef = useRef<HTMLDivElement>(null);
 
   const ranked = [...ideas]
-    .map((idea) => ({ idea, score: computeTotalScore(idea) }))
+    .map((idea) => ({ idea, score: computeTotalScore(idea, weights) }))
     .sort((a, b) => b.score - a.score);
 
   const radarData = categories.map((cat) => {
     const entry: Record<string, string | number> = { category: cat.name };
     ideas.forEach((idea) => {
-      entry[idea.name] = parseFloat(computeCategoryScore(idea, cat.id).toFixed(2));
+      entry[idea.name] = parseFloat(computeCategoryScore(idea, cat.id, weights).toFixed(2));
     });
     return entry;
   });
@@ -54,7 +56,6 @@ export function CompareView({ ideas, onSelectIdea }: CompareViewProps) {
       </div>
 
       <div ref={exportRef}>
-        {/* Ranking list */}
         <div className="mb-8 space-y-3">
           {ranked.map(({ idea, score }, idx) => {
             const grade = getGrade(score);
@@ -64,12 +65,9 @@ export function CompareView({ ideas, onSelectIdea }: CompareViewProps) {
                 onClick={() => onSelectIdea(idea.id)}
                 className="flex items-center gap-4 p-4 rounded-xl bg-card border border-border cursor-pointer shadow-monday hover:shadow-monday-md transition-all hover:border-primary/40"
               >
-                {/* Rank */}
                 <div className="text-2xl font-black text-primary w-10 text-center">
                   #{idx + 1}
                 </div>
-
-                {/* Name + bar */}
                 <div className="flex-1">
                   <div className="text-sm font-bold text-foreground mb-2">
                     {idea.name}
@@ -80,11 +78,9 @@ export function CompareView({ ideas, onSelectIdea }: CompareViewProps) {
                       style={{ width: `${(score / 5) * 100}%`, backgroundColor: grade.color }}
                     />
                   </div>
-
-                  {/* Mini category bars */}
                   <div className="flex gap-1.5 mt-2">
                     {categories.map((cat) => {
-                      const catScore = computeCategoryScore(idea, cat.id);
+                      const catScore = computeCategoryScore(idea, cat.id, weights);
                       return (
                         <div key={cat.id} className="flex-1">
                           <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
@@ -98,8 +94,6 @@ export function CompareView({ ideas, onSelectIdea }: CompareViewProps) {
                     })}
                   </div>
                 </div>
-
-                {/* Score + Badge */}
                 <div className="text-right">
                   <div className="text-3xl font-black" style={{ color: grade.color }}>
                     {score.toFixed(1)}
@@ -116,7 +110,6 @@ export function CompareView({ ideas, onSelectIdea }: CompareViewProps) {
           })}
         </div>
 
-        {/* Radar Chart */}
         <div className="bg-card rounded-xl border border-border p-6 shadow-monday">
           <h2 className="text-base font-bold text-foreground mb-4">
             Kategorie-Radar

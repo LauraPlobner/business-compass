@@ -3,6 +3,7 @@ import { categories } from "@/data/criteria";
 import { Idea } from "@/data/defaultIdeas";
 import { computeCategoryScore, computeTotalScore, getGrade, getBarColor, getUnansweredCriteria } from "@/lib/scoring";
 import { AlertCircle } from "lucide-react";
+import { CustomWeights } from "@/hooks/useWeights";
 
 function AnimatedNumber({ value, decimals = 1 }: { value: number; decimals?: number }) {
   const [display, setDisplay] = useState(value);
@@ -26,8 +27,8 @@ function AnimatedNumber({ value, decimals = 1 }: { value: number; decimals?: num
   return <>{display.toFixed(decimals)}</>;
 }
 
-export function ScoreSidebar({ idea }: { idea: Idea }) {
-  const totalScore = computeTotalScore(idea);
+export function ScoreSidebar({ idea, weights }: { idea: Idea; weights: CustomWeights }) {
+  const totalScore = computeTotalScore(idea, weights);
   const grade = getGrade(totalScore);
   const unanswered = getUnansweredCriteria(idea);
   const totalCriteria = categories.reduce((s, c) => s + c.criteria.length, 0);
@@ -52,7 +53,6 @@ export function ScoreSidebar({ idea }: { idea: Idea }) {
         <div className="text-xs text-muted-foreground mt-2 font-medium">
           {answered}/{totalCriteria} bewertet
         </div>
-        {/* Progress ring */}
         <div className="mt-3 mx-auto w-full h-2 bg-secondary rounded-full overflow-hidden">
           <div
             className="h-full rounded-full transition-all duration-500"
@@ -68,7 +68,7 @@ export function ScoreSidebar({ idea }: { idea: Idea }) {
         </h3>
         <div className="space-y-3">
           {categories.map((cat) => {
-            const catScore = computeCategoryScore(idea, cat.id);
+            const catScore = computeCategoryScore(idea, cat.id, weights);
             return (
               <div key={cat.id} className="bg-background rounded-lg p-3">
                 <div className="flex items-center justify-between mb-1.5">
@@ -100,18 +100,24 @@ export function ScoreSidebar({ idea }: { idea: Idea }) {
           {categories.map((cat) =>
             cat.criteria.map((cr) => {
               const score = idea.scores[cr.id] || 0;
+              const w = weights[cr.id] ?? cr.weight;
               return (
                 <div key={cr.id}>
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] text-muted-foreground truncate mr-2">
                       {cr.name}
                     </span>
-                    <span
-                      className="text-xs font-bold"
-                      style={{ color: score > 0 ? getBarColor(score) : "hsl(var(--muted-foreground))" }}
-                    >
-                      {score > 0 ? score : "–"}
-                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px] text-muted-foreground/60">
+                        w{w}
+                      </span>
+                      <span
+                        className="text-xs font-bold"
+                        style={{ color: score > 0 ? getBarColor(score) : "hsl(var(--muted-foreground))" }}
+                      >
+                        {score > 0 ? score : "–"}
+                      </span>
+                    </div>
                   </div>
                   <div className="h-1.5 bg-secondary rounded-full overflow-hidden mt-0.5">
                     <div
