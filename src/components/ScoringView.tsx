@@ -2,7 +2,7 @@ import { useState } from "react";
 import { categories, basicCriterionIds, Criterion } from "@/data/criteria";
 import { Idea, IdeaNotesType } from "@/data/defaultIdeas";
 import { CustomWeights } from "@/hooks/useWeights";
-import { Plus, Trash2, ExternalLink, ChevronDown, ChevronRight } from "lucide-react";
+import { Plus, Trash2, ExternalLink, ChevronDown, ChevronRight, Maximize2, Minimize2 } from "lucide-react";
 
 interface ScoringViewProps {
   idea: Idea;
@@ -80,6 +80,7 @@ function CriterionCard({ cr, idea, weights, onSetScore, onSetWeight }: { cr: Cri
 
 export function ScoringView({ idea, weights, onSetScore, onSetStructuredNote, onSetCompetitorLinks, onSetWeight }: ScoringViewProps) {
   const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [grundideeExpanded, setGrundideeExpanded] = useState(false);
   const konkurrenz = idea.structuredNotes?.konkurrenz ?? [];
 
   const addRow = () => {
@@ -102,15 +103,23 @@ export function ScoringView({ idea, weights, onSetScore, onSetStructuredNote, on
           Kontext & Notizen
         </h2>
         <div className="space-y-3">
-          {/* Grundidee - full width */}
+          {/* Grundidee - full width, expandable */}
           <div>
-            <label className="text-xs font-semibold text-muted-foreground mb-1 block">
-              Grundidee
-            </label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-xs font-semibold text-muted-foreground block">
+                Grundidee
+              </label>
+              <button
+                onClick={() => setGrundideeExpanded(!grundideeExpanded)}
+                className="text-muted-foreground hover:text-foreground transition-colors p-1"
+              >
+                {grundideeExpanded ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+              </button>
+            </div>
             <textarea
               value={idea.structuredNotes?.grundidee ?? ""}
               onChange={(e) => onSetStructuredNote("grundidee", e.target.value)}
-              rows={3}
+              rows={grundideeExpanded ? 12 : 3}
               className="w-full bg-card border border-border rounded-lg text-foreground text-sm p-2.5 resize-y outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
               placeholder="Was ist die Kernidee des Projekts?"
             />
