@@ -80,7 +80,7 @@ function CriterionCard({ cr, idea, weights, onSetScore, onSetWeight }: { cr: Cri
 
 export function ScoringView({ idea, weights, onSetScore, onSetStructuredNote, onSetCompetitorLinks, onSetWeight }: ScoringViewProps) {
   const [advancedOpen, setAdvancedOpen] = useState(false);
-  const [grundideeExpanded, setGrundideeExpanded] = useState(false);
+  const [expandedFields, setExpandedFields] = useState<Record<string, boolean>>({});
   const konkurrenz = idea.structuredNotes?.konkurrenz ?? [];
 
   const addRow = () => {
@@ -110,16 +110,16 @@ export function ScoringView({ idea, weights, onSetScore, onSetStructuredNote, on
                 Grundidee
               </label>
               <button
-                onClick={() => setGrundideeExpanded(!grundideeExpanded)}
+                onClick={() => setExpandedFields((prev) => ({ ...prev, grundidee: !prev.grundidee }))}
                 className="text-muted-foreground hover:text-foreground transition-colors p-1"
               >
-                {grundideeExpanded ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+                {expandedFields.grundidee ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
               </button>
             </div>
             <textarea
               value={idea.structuredNotes?.grundidee ?? ""}
               onChange={(e) => onSetStructuredNote("grundidee", e.target.value)}
-              rows={grundideeExpanded ? 12 : 3}
+              rows={expandedFields.grundidee ? 12 : 3}
               className="w-full bg-card border border-border rounded-lg text-foreground text-sm p-2.5 resize-y outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
               placeholder="Was ist die Kernidee des Projekts?"
             />
@@ -127,13 +127,21 @@ export function ScoringView({ idea, weights, onSetScore, onSetStructuredNote, on
           <div className="grid grid-cols-2 gap-3">
           {noteFields.filter((f) => f.key !== "grundidee").map((field) => (
             <div key={field.key}>
-              <label className="text-xs font-semibold text-muted-foreground mb-1 block">
-                {field.label}
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-xs font-semibold text-muted-foreground block">
+                  {field.label}
+                </label>
+                <button
+                  onClick={() => setExpandedFields((prev) => ({ ...prev, [field.key]: !prev[field.key] }))}
+                  className="text-muted-foreground hover:text-foreground transition-colors p-1"
+                >
+                  {expandedFields[field.key] ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+                </button>
+              </div>
               <textarea
                 value={idea.structuredNotes?.[field.key] ?? ""}
                 onChange={(e) => onSetStructuredNote(field.key, e.target.value)}
-                rows={2}
+                rows={expandedFields[field.key] ? 10 : 2}
                 className="w-full bg-card border border-border rounded-lg text-foreground text-sm p-2.5 resize-y outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
                 placeholder={field.placeholder}
               />
