@@ -5,6 +5,16 @@ export interface Criterion {
   hints: Record<number, string>;
 }
 
+export const basicCriterionIds = [
+  "time_to_revenue",
+  "recurring_revenue",
+  "marge",
+  "nachfrage",
+  "fulfillment",
+  "vertriebsaufwand",
+  "usp",
+];
+
 export interface Category {
   id: string;
   name: string;
@@ -27,7 +37,7 @@ export const categories: Category[] = [
       { id: "time_to_revenue", name: "Time to Revenue", weight: 10, hints: { 1: ">12 Monate", 2: "6–12 Monate", 3: "3–6 Monate", 4: "1–3 Monate", 5: "<30 Tage" } },
       { id: "revenue_ceiling", name: "Revenue Ceiling", weight: 8, hints: { 1: "<20k CHF/Jahr", 2: "20–50k", 3: "50–150k", 4: "150–500k", 5: ">500k CHF/Jahr" } },
       { id: "recurring_revenue", name: "Recurring Revenue", weight: 8, hints: { 1: "100% projektbasiert", 2: "Wenig wiederkehrend", 3: "Mix", 4: "Überwiegend Retainer", 5: "100% Retainer/Abo" } },
-      { id: "marge", name: "Marge", weight: 5, hints: { 1: "<20% netto", 2: "20–40%", 3: "40–55%", 4: "55–75%", 5: ">75% netto" } },
+      { id: "marge", name: "Marge & Skalierbarkeit", weight: 5, hints: { 1: "<20% netto, nicht skalierbar", 2: "20–40%, kaum skalierbar", 3: "40–55%, begrenzt skalierbar", 4: "55–75%, gut skalierbar", 5: ">75% netto, voll skalierbar" } },
       { id: "break_even", name: "Break-Even Zeitraum", weight: 2, hints: { 1: ">24 Monate", 2: "12–24 Monate", 3: "6–12 Monate", 4: "3–6 Monate", 5: "<3 Monate" } },
       { id: "exit_potenzial", name: "Exit-Potenzial", weight: 2, hints: { 1: "Kein Exit möglich", 2: "Schwer verkaufbar", 3: "Evtl. möglich", 4: "Gut verkaufbar", 5: "Klar verkaufbar" } },
     ],
@@ -56,6 +66,7 @@ export const categories: Category[] = [
       { id: "nachfrage", name: "Bestehende Nachfrage", weight: 7, hints: { 1: "Muss erst geschaffen werden", 2: "Gering", 3: "Moderat", 4: "Gut vorhanden", 5: "Klar vorhanden" } },
       { id: "marktsaettigung", name: "Marktsättigung", weight: 5, hints: { 1: "Übersättigt", 2: "Viel Wettbewerb", 3: "Mittel", 4: "Wenig Wettbewerb", 5: "Blue Ocean" } },
       { id: "usp", name: "USP Stärke", weight: 5, hints: { 1: "Kein USP", 2: "Schwacher USP", 3: "Durchschnitt", 4: "Guter USP", 5: "Starkes Alleinstellungsmerkmal" } },
+      { id: "vertriebsaufwand", name: "Vertriebsaufwand", weight: 5, hints: { 1: "Extrem aufwändig, langer Sales-Cycle", 2: "Hoher Aufwand", 3: "Moderater Aufwand", 4: "Wenig Aufwand, Inbound-lastig", 5: "Verkauft sich fast von selbst" } },
       { id: "marktgroesse", name: "Marktgrösse CH/DACH", weight: 3, hints: { 1: "Mikro-Nische", 2: "Kleine Nische", 3: "Mittelgross", 4: "Grosser Markt", 5: "Massiver Markt" } },
     ],
   },
@@ -70,6 +81,7 @@ export const categories: Category[] = [
       { id: "time_to_launch", name: "Time to Launch", weight: 5, hints: { 1: ">12 Monate", 2: "6–12 Monate", 3: "2–6 Monate", 4: "1–2 Monate", 5: "<4 Wochen" } },
       { id: "abhaengigkeiten", name: "Abhängigkeiten", weight: 3, hints: { 1: "Viele externe Abhängigkeiten", 2: "Einige externe", 3: "Wenige", 4: "Kaum", 5: "Vollständig autonom" } },
       { id: "selbst_baubar", name: "Eigenleistung möglich", weight: 4, hints: { 1: "Alles outsourcen", 2: "Vieles outsourcen", 3: "Mix", 4: "Vieles selbst", 5: "Alles selbst machbar" } },
+      { id: "fulfillment", name: "Fulfillmentaufwand", weight: 5, hints: { 1: "Extrem aufwändig, viel Handarbeit", 2: "Hoher Aufwand pro Kunde", 3: "Moderater Aufwand", 4: "Wenig Aufwand, teils automatisiert", 5: "Voll automatisiert / Self-Service" } },
       { id: "support", name: "Support & Maintenance", weight: 3, hints: { 1: "Sehr hoher laufender Aufwand", 2: "Hoher Aufwand", 3: "Moderate Pflege", 4: "Wenig Pflege", 5: "Läuft selbständig" } },
     ],
   },

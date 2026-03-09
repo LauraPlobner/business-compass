@@ -1,6 +1,6 @@
 import { useState, KeyboardEvent } from "react";
 import { Idea } from "@/data/defaultIdeas";
-import { X, Plus, GitCompareArrows, ShoppingCart } from "lucide-react";
+import { X, Plus, GitCompareArrows, ShoppingCart, LayoutGrid } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,13 +19,15 @@ interface IdeaTabsProps {
   onAdd: (name: string) => Promise<string>;
   onRename: (id: string, name: string) => void;
   onDelete: (id: string) => void;
+  overviewMode: boolean;
   compareMode: boolean;
   salesMode: boolean;
+  onToggleOverview: () => void;
   onToggleCompare: () => void;
   onToggleSales: () => void;
 }
 
-export function IdeaTabs({ ideas, activeId, onSelect, onAdd, onRename, onDelete, compareMode, salesMode, onToggleCompare, onToggleSales }: IdeaTabsProps) {
+export function IdeaTabs({ ideas, activeId, onSelect, onAdd, onRename, onDelete, overviewMode, compareMode, salesMode, onToggleOverview, onToggleCompare, onToggleSales }: IdeaTabsProps) {
   const [adding, setAdding] = useState(false);
   const [newName, setNewName] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -60,9 +62,10 @@ export function IdeaTabs({ ideas, activeId, onSelect, onAdd, onRename, onDelete,
 
   return (
     <>
-    <div className="flex items-center gap-1 px-4 py-2 bg-card border-b border-border overflow-x-auto">
+    <div className="flex items-center bg-card border-b border-border">
+      <div className="flex items-center gap-1 px-6 py-2 overflow-x-auto flex-1 min-w-0">
       {ideas.map((idea) => {
-        const isActive = !compareMode && idea.id === activeId;
+        const isActive = !compareMode && !overviewMode && idea.id === activeId;
         return (
           <div
             key={idea.id}
@@ -132,7 +135,19 @@ export function IdeaTabs({ ideas, activeId, onSelect, onAdd, onRename, onDelete,
         </button>
       )}
 
-      <div className="ml-auto shrink-0 flex items-center gap-2">
+      </div>
+      <div className="shrink-0 flex items-center gap-2 px-4 py-2 border-l border-border">
+        <button
+          onClick={onToggleOverview}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+            overviewMode
+              ? "bg-primary text-primary-foreground shadow-monday"
+              : "text-primary border border-primary/30 hover:bg-primary/10"
+          }`}
+        >
+          <LayoutGrid size={16} />
+          {overviewMode ? "← Zurück" : "Übersicht"}
+        </button>
         <button
           onClick={onToggleSales}
           className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${

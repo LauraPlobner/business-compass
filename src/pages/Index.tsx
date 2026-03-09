@@ -6,13 +6,14 @@ import { ScoringView } from "@/components/ScoringView";
 import { ScoreSidebar } from "@/components/ScoreSidebar";
 import { CompareView } from "@/components/CompareView";
 import { SalesView } from "@/components/SalesView";
+import { OverviewView } from "@/components/OverviewView";
 import { RotateCcw } from "lucide-react";
 
 const Index = () => {
   const { ideas, loading, error, setScore, setNotes, setStructuredNote, setCompetitorLinks, addIdea, renameIdea, deleteIdea } = useIdeas();
   const { weights, setWeight, resetWeights } = useWeights();
   const [activeId, setActiveId] = useState("");
-  const [viewMode, setViewMode] = useState<"scoring" | "compare" | "sales">("scoring");
+  const [viewMode, setViewMode] = useState<"overview" | "scoring" | "compare" | "sales">("overview");
 
   useEffect(() => {
     if (!loading && ideas.length > 0 && !activeId) {
@@ -65,14 +66,22 @@ const Index = () => {
         onAdd={addIdea}
         onRename={renameIdea}
         onDelete={deleteIdea}
+        overviewMode={viewMode === "overview"}
         compareMode={viewMode === "compare"}
         salesMode={viewMode === "sales"}
+        onToggleOverview={() => setViewMode(viewMode === "overview" ? "scoring" : "overview")}
         onToggleCompare={() => setViewMode(viewMode === "compare" ? "scoring" : "compare")}
         onToggleSales={() => setViewMode(viewMode === "sales" ? "scoring" : "sales")}
       />
 
       {/* Content */}
-      {viewMode === "compare" ? (
+      {viewMode === "overview" ? (
+        <OverviewView
+          ideas={ideas}
+          weights={weights}
+          onSelectIdea={(id) => { setActiveId(id); setViewMode("scoring"); }}
+        />
+      ) : viewMode === "compare" ? (
         <CompareView
           ideas={ideas}
           weights={weights}

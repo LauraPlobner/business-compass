@@ -1,7 +1,8 @@
-import { categories } from "@/data/criteria";
+import { useState } from "react";
+import { categories, basicCriterionIds, Criterion } from "@/data/criteria";
 import { Idea, IdeaNotesType } from "@/data/defaultIdeas";
 import { CustomWeights } from "@/hooks/useWeights";
-import { Plus, Trash2, ExternalLink } from "lucide-react";
+import { Plus, Trash2, ExternalLink, ChevronDown, ChevronRight } from "lucide-react";
 
 interface ScoringViewProps {
   idea: Idea;
@@ -12,14 +13,73 @@ interface ScoringViewProps {
   onSetWeight: (criterionId: string, value: number) => void;
 }
 
-const noteFields: { key: "zielgruppe" | "pricing" | "status" | "fragen"; label: string; placeholder: string }[] = [
+const noteFields: { key: "grundidee" | "zielgruppe" | "pricing" | "status" | "fragen"; label: string; placeholder: string }[] = [
+  { key: "grundidee", label: "Grundidee", placeholder: "Was ist die Kernidee des Projekts?" },
   { key: "zielgruppe", label: "Zielgruppe", placeholder: "Wer sind die Kunden?" },
   { key: "pricing", label: "Pricing", placeholder: "Preismodell, Umsatz pro Kunde..." },
   { key: "status", label: "Status / Fortschritt", placeholder: "Wie weit ist die Idee?" },
   { key: "fragen", label: "Offene Fragen", placeholder: "Was muss noch geklärt werden?" },
 ];
 
+function CriterionCard({ cr, idea, weights, onSetScore, onSetWeight }: { cr: Criterion; idea: Idea; weights: CustomWeights; onSetScore: (id: string, v: number) => void; onSetWeight: (id: string, v: number) => void }) {
+  const currentScore = idea.scores[cr.id];
+  const currentWeight = weights?.[cr.id] ?? cr.weight;
+  return (
+    <div className="bg-card rounded-lg border border-border p-4 shadow-monday hover:shadow-monday-md transition-shadow">
+      <div className="flex items-center justify-between mb-1">
+        <span className="text-sm font-semibold text-foreground">{cr.name}</span>
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs text-muted-foreground">Gewicht:</span>
+          <input
+            type="number"
+            min={0}
+            max={100}
+            value={currentWeight}
+            onChange={(e) => onSetWeight(cr.id, parseInt(e.target.value) || 0)}
+            className="w-12 h-7 text-center text-xs font-bold bg-secondary border border-border rounded-md text-foreground outline-none focus:ring-2 focus:ring-ring transition-all"
+          />
+        </div>
+      </div>
+      <div className="text-[11px] text-muted-foreground mb-3">
+        1 = {cr.hints[1]} · 5 = {cr.hints[5]}
+      </div>
+      <div className="flex items-center gap-2">
+        {[1, 2, 3, 4, 5].map((val) => {
+          const isSelected = currentScore === val;
+          const getScoreColor = (v: number) => {
+            if (v <= 2) return { bg: "hsl(0, 80%, 60%)", light: "hsl(0, 80%, 95%)" };
+            if (v === 3) return { bg: "hsl(39, 100%, 50%)", light: "hsl(39, 100%, 94%)" };
+            return { bg: "hsl(152, 69%, 43%)", light: "hsl(152, 69%, 94%)" };
+          };
+          const colors = getScoreColor(val);
+          return (
+            <button
+              key={val}
+              onClick={() => onSetScore(cr.id, val)}
+              className="w-10 h-10 rounded-lg text-sm font-bold transition-all"
+              style={{
+                background: isSelected ? colors.bg : colors.light,
+                color: isSelected ? "white" : colors.bg,
+                border: `2px solid ${isSelected ? colors.bg : "transparent"}`,
+                transform: isSelected ? "scale(1.1)" : "scale(1)",
+              }}
+            >
+              {val}
+            </button>
+          );
+        })}
+        {currentScore != null && (
+          <span className="text-xs text-muted-foreground ml-3 italic">
+            {cr.hints[currentScore]}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function ScoringView({ idea, weights, onSetScore, onSetStructuredNote, onSetCompetitorLinks, onSetWeight }: ScoringViewProps) {
+  const [advancedOpen, setAdvancedOpen] = useState(false);
   const konkurrenz = idea.structuredNotes?.konkurrenz ?? [];
 
   const addRow = () => {
@@ -41,8 +101,22 @@ export function ScoringView({ idea, weights, onSetScore, onSetStructuredNote, on
         <h2 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-3">
           Kontext & Notizen
         </h2>
-        <div className="grid grid-cols-2 gap-3">
-          {noteFields.map((field) => (
+        <div className="space-y-3">
+          {/* Grundidee - full width */}
+          <div>
+            <label className="text-xs font-semibold text-muted-foreground mb-1 block">
+              Grundidee
+            </label>
+            <textarea
+              value={idea.structuredNotes?.grundidee ?? ""}
+              onChange={(e) => onSetStructuredNote("grundidee", e.target.value)}
+              rows={3}
+              className="w-full bg-card border border-border rounded-lg text-foreground text-sm p-2.5 resize-y outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
+              placeholder="Was ist die Kernidee des Projekts?"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+          {noteFields.filter((f) => f.key !== "grundidee").map((field) => (
             <div key={field.key}>
               <label className="text-xs font-semibold text-muted-foreground mb-1 block">
                 {field.label}
@@ -106,92 +180,67 @@ export function ScoringView({ idea, weights, onSetScore, onSetStructuredNote, on
             </div>
           </div>
         </div>
+        </div>
       </div>
 
-      {/* Criteria by category */}
-      {categories.map((cat) => {
-        const catTotalWeight = cat.criteria.reduce((s, cr) => s + (weights?.[cr.id] ?? cr.weight), 0);
-        return (
-          <div key={cat.id} className="mb-8">
-            <div
-              className="flex items-center gap-3 mb-4 pb-3 border-b-2"
-              style={{ borderColor: cat.color }}
-            >
-              {cat.emoji && <span className="text-xl">{cat.emoji}</span>}
-              <h2 className="text-base font-bold" style={{ color: cat.color }}>
-                {cat.name}
-              </h2>
-              <span
-                className="text-xs font-bold px-2.5 py-0.5 rounded-full text-white"
-                style={{ backgroundColor: cat.color }}
-              >
-                {catTotalWeight} Pkt.
-              </span>
-            </div>
+      {/* Basic Evaluation */}
+      <div className="mb-8">
+        <div className="flex items-center gap-3 mb-4 pb-3 border-b-2 border-foreground/20">
+          <h2 className="text-base font-bold text-foreground">Basic Evaluation</h2>
+          <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-foreground/10 text-foreground">
+            {basicCriterionIds.length} Kriterien
+          </span>
+        </div>
+        <div className="space-y-4">
+          {basicCriterionIds.map((id) => {
+            const cr = categories.flatMap((c) => c.criteria).find((c) => c.id === id);
+            if (!cr) return null;
+            return <CriterionCard key={cr.id} cr={cr} idea={idea} weights={weights} onSetScore={onSetScore} onSetWeight={onSetWeight} />;
+          })}
+        </div>
+      </div>
 
-            <div className="space-y-4">
-              {cat.criteria.map((cr) => {
-                const currentScore = idea.scores[cr.id];
-                const currentWeight = weights?.[cr.id] ?? cr.weight;
-                return (
-                  <div key={cr.id} className="bg-card rounded-lg border border-border p-4 shadow-monday hover:shadow-monday-md transition-shadow">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-semibold text-foreground">
-                        {cr.name}
-                      </span>
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-xs text-muted-foreground">Gewicht:</span>
-                        <input
-                          type="number"
-                          min={0}
-                          max={100}
-                          value={currentWeight}
-                          onChange={(e) => onSetWeight(cr.id, parseInt(e.target.value) || 0)}
-                          className="w-12 h-7 text-center text-xs font-bold bg-secondary border border-border rounded-md text-foreground outline-none focus:ring-2 focus:ring-ring transition-all"
-                        />
-                      </div>
-                    </div>
-                    <div className="text-[11px] text-muted-foreground mb-3">
-                      1 = {cr.hints[1]} · 5 = {cr.hints[5]}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {[1, 2, 3, 4, 5].map((val) => {
-                        const isSelected = currentScore === val;
-                        const getScoreColor = (v: number) => {
-                          if (v <= 2) return { bg: "hsl(0, 80%, 60%)", light: "hsl(0, 80%, 95%)" };
-                          if (v === 3) return { bg: "hsl(39, 100%, 50%)", light: "hsl(39, 100%, 94%)" };
-                          return { bg: "hsl(152, 69%, 43%)", light: "hsl(152, 69%, 94%)" };
-                        };
-                        const colors = getScoreColor(val);
-                        return (
-                          <button
-                            key={val}
-                            onClick={() => onSetScore(cr.id, val)}
-                            className="w-10 h-10 rounded-lg text-sm font-bold transition-all"
-                            style={{
-                              background: isSelected ? colors.bg : colors.light,
-                              color: isSelected ? "white" : colors.bg,
-                              border: `2px solid ${isSelected ? colors.bg : "transparent"}`,
-                              transform: isSelected ? "scale(1.1)" : "scale(1)",
-                            }}
-                          >
-                            {val}
-                          </button>
-                        );
-                      })}
-                      {currentScore != null && (
-                        <span className="text-xs text-muted-foreground ml-3 italic">
-                          {cr.hints[currentScore]}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
+      {/* Erweiterte Evaluation (collapsible) */}
+      <div className="mb-8">
+        <button
+          onClick={() => setAdvancedOpen(!advancedOpen)}
+          className="flex items-center gap-3 mb-4 pb-3 border-b-2 border-foreground/20 w-full text-left hover:opacity-80 transition-opacity"
+        >
+          {advancedOpen ? <ChevronDown size={18} className="text-muted-foreground" /> : <ChevronRight size={18} className="text-muted-foreground" />}
+          <h2 className="text-base font-bold text-foreground">Erweiterte Evaluation</h2>
+          <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-muted text-muted-foreground">
+            {categories.flatMap((c) => c.criteria).filter((cr) => !basicCriterionIds.includes(cr.id)).length} Kriterien
+          </span>
+        </button>
+        {advancedOpen && categories.map((cat) => {
+          const advancedCriteria = cat.criteria.filter((cr) => !basicCriterionIds.includes(cr.id));
+          if (advancedCriteria.length === 0) return null;
+          const catTotalWeight = advancedCriteria.reduce((s, cr) => s + (weights?.[cr.id] ?? cr.weight), 0);
+          return (
+            <div key={cat.id} className="mb-8">
+              <div
+                className="flex items-center gap-3 mb-4 pb-3 border-b-2 border-foreground/20"
+              >
+                {cat.emoji && <span className="text-xl">{cat.emoji}</span>}
+                <h2 className="text-base font-bold text-foreground">
+                  {cat.name}
+                </h2>
+                <span
+                  className="text-xs font-bold px-2.5 py-0.5 rounded-full text-white"
+                  style={{ backgroundColor: cat.color }}
+                >
+                  {catTotalWeight} Pkt.
+                </span>
+              </div>
+              <div className="space-y-4">
+                {advancedCriteria.map((cr) => (
+                  <CriterionCard key={cr.id} cr={cr} idea={idea} weights={weights} onSetScore={onSetScore} onSetWeight={onSetWeight} />
+                ))}
+              </div>
             </div>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
     </div>
   );
 }

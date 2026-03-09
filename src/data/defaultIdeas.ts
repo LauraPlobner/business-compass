@@ -1,4 +1,5 @@
 export interface IdeaNotes {
+  grundidee: string;
   zielgruppe: string;
   pricing: string;
   status: string;
@@ -15,6 +16,7 @@ export interface Idea {
 }
 
 const emptyNotes: IdeaNotes = {
+  grundidee: "",
   zielgruppe: "",
   pricing: "",
   status: "",
@@ -28,6 +30,7 @@ export const defaultIdeas: Idea[] = [
     name: "Recruiting-Agentur",
     notes: "",
     structuredNotes: {
+      grundidee: "",
       zielgruppe: "Architekten, Zahnärzte, KMU CH",
       pricing: "6–15k Setup + auto-Retainer. Ø 15–25k CHF/Jahr pro Kunde.",
       status: "System steht zu 90%, validiert.",
@@ -41,6 +44,7 @@ export const defaultIdeas: Idea[] = [
     name: "IT-Digitalisierung",
     notes: "",
     structuredNotes: {
+      grundidee: "",
       zielgruppe: "KMU, Handwerk, Agenturen",
       pricing: "Projekt 3–13k, Retainer 2–8k/Mo.",
       status: "",
@@ -54,6 +58,7 @@ export const defaultIdeas: Idea[] = [
     name: "SaaS-Automation (Laura)",
     notes: "",
     structuredNotes: {
+      grundidee: "",
       zielgruppe: "",
       pricing: "Option A: 700€/Mo individuell. Option B: 355€/Mo Standardlizenz.",
       status: "",
