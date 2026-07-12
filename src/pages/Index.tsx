@@ -1,19 +1,19 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { useIdeas } from "@/hooks/useIdeas";
-import { useWeights } from "@/hooks/useWeights";
+import { useCriteria } from "@/hooks/useCriteria";
 import { IdeaTabs } from "@/components/IdeaTabs";
 import { ScoringView } from "@/components/ScoringView";
 import { ScoreSidebar } from "@/components/ScoreSidebar";
 import { CompareView } from "@/components/CompareView";
-import { SalesView } from "@/components/SalesView";
 import { OverviewView } from "@/components/OverviewView";
-import { RotateCcw } from "lucide-react";
+import { Scale } from "lucide-react";
 
 const Index = () => {
   const { ideas, loading, error, setScore, setNotes, setStructuredNote, setCompetitorLinks, addIdea, renameIdea, deleteIdea } = useIdeas();
-  const { weights, setWeight, resetWeights } = useWeights();
+  const { categories, weights } = useCriteria();
   const [activeId, setActiveId] = useState("");
-  const [viewMode, setViewMode] = useState<"overview" | "scoring" | "compare" | "sales">("overview");
+  const [viewMode, setViewMode] = useState<"overview" | "scoring" | "compare">("overview");
 
   useEffect(() => {
     if (!loading && ideas.length > 0 && !activeId) {
@@ -48,14 +48,14 @@ const Index = () => {
       <div className="bg-card border-b border-border px-6 py-3 flex items-center justify-between shadow-monday">
         <h1 className="text-lg font-bold text-foreground">Die Grinder Validiermaschine</h1>
 
-        <button
-          onClick={resetWeights}
+        <Link
+          to="/einstellungen"
           className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
-          title="Gewichtungen zurücksetzen"
+          title="Kriterien & Gewichtung – gilt für alle Ideen"
         >
-          <RotateCcw size={14} />
-          Gewichte reset
-        </button>
+          <Scale size={14} />
+          Kriterien & Gewichtung
+        </Link>
       </div>
 
       {/* Tabs */}
@@ -68,10 +68,8 @@ const Index = () => {
         onDelete={deleteIdea}
         overviewMode={viewMode === "overview"}
         compareMode={viewMode === "compare"}
-        salesMode={viewMode === "sales"}
         onToggleOverview={() => setViewMode(viewMode === "overview" ? "scoring" : "overview")}
         onToggleCompare={() => setViewMode(viewMode === "compare" ? "scoring" : "compare")}
-        onToggleSales={() => setViewMode(viewMode === "sales" ? "scoring" : "sales")}
       />
 
       {/* Content */}
@@ -79,30 +77,30 @@ const Index = () => {
         <OverviewView
           ideas={ideas}
           weights={weights}
+          categories={categories}
           onSelectIdea={(id) => { setActiveId(id); setViewMode("scoring"); }}
         />
       ) : viewMode === "compare" ? (
         <CompareView
           ideas={ideas}
           weights={weights}
+          categories={categories}
           onSelectIdea={(id) => {
             setActiveId(id);
             setViewMode("scoring");
           }}
         />
-      ) : viewMode === "sales" ? (
-        <SalesView ideas={ideas} />
       ) : activeIdea ? (
         <div className="flex flex-1 overflow-hidden">
           <ScoringView
             idea={activeIdea}
             weights={weights}
+            categories={categories}
             onSetScore={(crId, val) => setScore(activeIdea.id, crId, val)}
             onSetStructuredNote={(field, value) => setStructuredNote(activeIdea.id, field, value)}
             onSetCompetitorLinks={(links) => setCompetitorLinks(activeIdea.id, links)}
-            onSetWeight={setWeight}
           />
-          <ScoreSidebar idea={activeIdea} weights={weights} />
+          <ScoreSidebar idea={activeIdea} weights={weights} categories={categories} />
         </div>
       ) : null}
     </div>

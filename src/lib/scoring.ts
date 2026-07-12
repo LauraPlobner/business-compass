@@ -1,8 +1,13 @@
-import { categories } from "@/data/criteria";
+import { Category } from "@/data/criteria";
 import { Idea } from "@/data/defaultIdeas";
-import { CustomWeights } from "@/hooks/useWeights";
+import { CustomWeights } from "@/hooks/useCriteria";
 
-export function computeCategoryScore(idea: Idea, categoryId: string, customWeights?: CustomWeights): number {
+export function computeCategoryScore(
+  idea: Idea,
+  categoryId: string,
+  weights: CustomWeights,
+  categories: Category[]
+): number {
   const cat = categories.find((c) => c.id === categoryId);
   if (!cat) return 0;
   let totalWeight = 0;
@@ -10,7 +15,7 @@ export function computeCategoryScore(idea: Idea, categoryId: string, customWeigh
   for (const cr of cat.criteria) {
     const score = idea.scores[cr.id];
     if (score != null) {
-      const w = customWeights ? customWeights[cr.id] ?? cr.weight : cr.weight;
+      const w = weights?.[cr.id] ?? cr.weight;
       weightedSum += score * w;
       totalWeight += w;
     }
@@ -18,14 +23,14 @@ export function computeCategoryScore(idea: Idea, categoryId: string, customWeigh
   return totalWeight > 0 ? weightedSum / totalWeight : 0;
 }
 
-export function computeTotalScore(idea: Idea, customWeights?: CustomWeights): number {
+export function computeTotalScore(idea: Idea, weights: CustomWeights, categories: Category[]): number {
   let totalWeight = 0;
   let weightedSum = 0;
   for (const cat of categories) {
     for (const cr of cat.criteria) {
       const score = idea.scores[cr.id];
       if (score != null) {
-        const w = customWeights ? customWeights[cr.id] ?? cr.weight : cr.weight;
+        const w = weights?.[cr.id] ?? cr.weight;
         weightedSum += score * w;
         totalWeight += w;
       }
@@ -46,7 +51,10 @@ export function getBarColor(score: number): string {
   return "hsl(20, 95%, 55%)";
 }
 
-export function getUnansweredCriteria(idea: Idea): { categoryName: string; criterionName: string }[] {
+export function getUnansweredCriteria(
+  idea: Idea,
+  categories: Category[]
+): { categoryName: string; criterionName: string }[] {
   const unanswered: { categoryName: string; criterionName: string }[] = [];
   for (const cat of categories) {
     for (const cr of cat.criteria) {

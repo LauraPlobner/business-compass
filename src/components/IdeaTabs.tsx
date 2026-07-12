@@ -1,6 +1,6 @@
 import { useState, KeyboardEvent } from "react";
 import { Idea } from "@/data/defaultIdeas";
-import { X, Plus, GitCompareArrows, ShoppingCart, LayoutGrid } from "lucide-react";
+import { X, Plus, GitCompareArrows, LayoutGrid } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,13 +21,11 @@ interface IdeaTabsProps {
   onDelete: (id: string) => void;
   overviewMode: boolean;
   compareMode: boolean;
-  salesMode: boolean;
   onToggleOverview: () => void;
   onToggleCompare: () => void;
-  onToggleSales: () => void;
 }
 
-export function IdeaTabs({ ideas, activeId, onSelect, onAdd, onRename, onDelete, overviewMode, compareMode, salesMode, onToggleOverview, onToggleCompare, onToggleSales }: IdeaTabsProps) {
+export function IdeaTabs({ ideas, activeId, onSelect, onAdd, onRename, onDelete, overviewMode, compareMode, onToggleOverview, onToggleCompare }: IdeaTabsProps) {
   const [adding, setAdding] = useState(false);
   const [newName, setNewName] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -147,17 +145,6 @@ export function IdeaTabs({ ideas, activeId, onSelect, onAdd, onRename, onDelete,
         >
           <LayoutGrid size={16} />
           {overviewMode ? "← Zurück" : "Übersicht"}
-        </button>
-        <button
-          onClick={onToggleSales}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-            salesMode
-              ? "bg-primary text-primary-foreground shadow-monday"
-              : "text-primary border border-primary/30 hover:bg-primary/10"
-          }`}
-        >
-          <ShoppingCart size={16} />
-          {salesMode ? "← Zurück" : "Sales"}
         </button>
         <button
           onClick={onToggleCompare}

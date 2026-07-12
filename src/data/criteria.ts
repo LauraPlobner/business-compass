@@ -3,6 +3,17 @@ export interface Criterion {
   name: string;
   weight: number;
   hints: Record<number, string>;
+  /** true für selbst angelegte Kriterien (löschbar, aus der DB) */
+  custom?: boolean;
+}
+
+/** Ein selbst angelegtes Kriterium, wie es in der DB liegt. */
+export interface CustomCriterion {
+  id: string;
+  categoryId: string;
+  name: string;
+  weight: number;
+  hints: Record<number, string>;
 }
 
 export const basicCriterionIds = [
@@ -100,6 +111,22 @@ export const categories: Category[] = [
     ],
   },
 ];
+
+/**
+ * Die Standard-Kriterien aus dieser Datei, ergänzt um die selbst angelegten.
+ * Ergebnis ist die einzige Kriterienliste, mit der die App arbeitet.
+ */
+export function buildCategories(custom: CustomCriterion[]): Category[] {
+  return categories.map((cat) => ({
+    ...cat,
+    criteria: [
+      ...cat.criteria,
+      ...custom
+        .filter((c) => c.categoryId === cat.id)
+        .map((c) => ({ id: c.id, name: c.name, weight: c.weight, hints: c.hints, custom: true })),
+    ],
+  }));
+}
 
 export function getAllCriteriaIds(): string[] {
   return categories.flatMap((c) => c.criteria.map((cr) => cr.id));

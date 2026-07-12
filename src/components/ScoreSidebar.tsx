@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { categories } from "@/data/criteria";
+import { Category } from "@/data/criteria";
 import { Idea } from "@/data/defaultIdeas";
 import { computeCategoryScore, computeTotalScore, getGrade, getBarColor, getUnansweredCriteria } from "@/lib/scoring";
 import { AlertCircle } from "lucide-react";
-import { CustomWeights } from "@/hooks/useWeights";
+import { CustomWeights } from "@/hooks/useCriteria";
 
 function AnimatedNumber({ value, decimals = 1 }: { value: number; decimals?: number }) {
   const [display, setDisplay] = useState(value);
@@ -27,10 +27,18 @@ function AnimatedNumber({ value, decimals = 1 }: { value: number; decimals?: num
   return <>{display.toFixed(decimals)}</>;
 }
 
-export function ScoreSidebar({ idea, weights }: { idea: Idea; weights: CustomWeights }) {
-  const totalScore = computeTotalScore(idea, weights);
+export function ScoreSidebar({
+  idea,
+  weights,
+  categories,
+}: {
+  idea: Idea;
+  weights: CustomWeights;
+  categories: Category[];
+}) {
+  const totalScore = computeTotalScore(idea, weights, categories);
   const grade = getGrade(totalScore);
-  const unanswered = getUnansweredCriteria(idea);
+  const unanswered = getUnansweredCriteria(idea, categories);
   const totalCriteria = categories.reduce((s, c) => s + c.criteria.length, 0);
   const answered = totalCriteria - unanswered.length;
 
@@ -68,7 +76,7 @@ export function ScoreSidebar({ idea, weights }: { idea: Idea; weights: CustomWei
         </h3>
         <div className="space-y-3">
           {categories.map((cat) => {
-            const catScore = computeCategoryScore(idea, cat.id, weights);
+            const catScore = computeCategoryScore(idea, cat.id, weights, categories);
             return (
               <div key={cat.id} className="bg-background rounded-lg p-3">
                 <div className="flex items-center justify-between mb-1.5">

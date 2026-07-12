@@ -1,16 +1,17 @@
 import { useState } from "react";
-import { categories, basicCriterionIds, Criterion } from "@/data/criteria";
+import { Link } from "react-router-dom";
+import { basicCriterionIds, Category, Criterion } from "@/data/criteria";
 import { Idea, IdeaNotesType } from "@/data/defaultIdeas";
-import { CustomWeights } from "@/hooks/useWeights";
-import { Plus, Trash2, ExternalLink, ChevronDown, ChevronRight, Maximize2, Minimize2 } from "lucide-react";
+import { CustomWeights } from "@/hooks/useCriteria";
+import { Plus, Trash2, ExternalLink, ChevronDown, ChevronRight, Maximize2, Minimize2, Scale } from "lucide-react";
 
 interface ScoringViewProps {
   idea: Idea;
   weights: CustomWeights;
+  categories: Category[];
   onSetScore: (criterionId: string, value: number) => void;
   onSetStructuredNote: (field: keyof IdeaNotesType, value: string) => void;
   onSetCompetitorLinks: (links: { name: string; url: string }[]) => void;
-  onSetWeight: (criterionId: string, value: number) => void;
 }
 
 const noteFields: { key: "grundidee" | "zielgruppe" | "pricing" | "status" | "fragen"; label: string; placeholder: string }[] = [
@@ -21,28 +22,29 @@ const noteFields: { key: "grundidee" | "zielgruppe" | "pricing" | "status" | "fr
   { key: "fragen", label: "Offene Fragen", placeholder: "Was muss noch geklärt werden?" },
 ];
 
-function CriterionCard({ cr, idea, weights, onSetScore, onSetWeight }: { cr: Criterion; idea: Idea; weights: CustomWeights; onSetScore: (id: string, v: number) => void; onSetWeight: (id: string, v: number) => void }) {
+function CriterionCard({ cr, idea, weights, onSetScore }: { cr: Criterion; idea: Idea; weights: CustomWeights; onSetScore: (id: string, v: number) => void }) {
   const currentScore = idea.scores[cr.id];
   const currentWeight = weights?.[cr.id] ?? cr.weight;
   return (
     <div className="bg-card rounded-lg border border-border p-4 shadow-monday hover:shadow-monday-md transition-shadow">
       <div className="flex items-center justify-between mb-1">
         <span className="text-sm font-semibold text-foreground">{cr.name}</span>
-        <div className="flex items-center gap-1.5">
-          <span className="text-xs text-muted-foreground">Gewicht:</span>
-          <input
-            type="number"
-            min={0}
-            max={100}
-            value={currentWeight}
-            onChange={(e) => onSetWeight(cr.id, parseInt(e.target.value) || 0)}
-            className="w-12 h-7 text-center text-xs font-bold bg-secondary border border-border rounded-md text-foreground outline-none focus:ring-2 focus:ring-ring transition-all"
-          />
+        <Link
+          to="/einstellungen"
+          title="Gewichtung ist global – in den Einstellungen ändern (wirkt auf alle Ideen)"
+          className="flex items-center gap-1.5 px-2 py-1 rounded-md text-xs text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+        >
+          <Scale size={12} />
+          Gewicht: <span className="font-bold text-foreground">{currentWeight}</span>
+        </Link>
+      </div>
+      {(cr.hints[1] || cr.hints[5]) && (
+        <div className="text-[11px] text-muted-foreground mb-3">
+          {cr.hints[1] && <>1 = {cr.hints[1]}</>}
+          {cr.hints[1] && cr.hints[5] && " · "}
+          {cr.hints[5] && <>5 = {cr.hints[5]}</>}
         </div>
-      </div>
-      <div className="text-[11px] text-muted-foreground mb-3">
-        1 = {cr.hints[1]} · 5 = {cr.hints[5]}
-      </div>
+      )}
       <div className="flex items-center gap-2">
         {[1, 2, 3, 4, 5].map((val) => {
           const isSelected = currentScore === val;
@@ -68,7 +70,7 @@ function CriterionCard({ cr, idea, weights, onSetScore, onSetWeight }: { cr: Cri
             </button>
           );
         })}
-        {currentScore != null && (
+        {currentScore != null && cr.hints[currentScore] && (
           <span className="text-xs text-muted-foreground ml-3 italic">
             {cr.hints[currentScore]}
           </span>
@@ -78,7 +80,7 @@ function CriterionCard({ cr, idea, weights, onSetScore, onSetWeight }: { cr: Cri
   );
 }
 
-export function ScoringView({ idea, weights, onSetScore, onSetStructuredNote, onSetCompetitorLinks, onSetWeight }: ScoringViewProps) {
+export function ScoringView({ idea, weights, categories, onSetScore, onSetStructuredNote, onSetCompetitorLinks }: ScoringViewProps) {
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [expandedFields, setExpandedFields] = useState<Record<string, boolean>>({});
   const konkurrenz = idea.structuredNotes?.konkurrenz ?? [];
@@ -212,7 +214,7 @@ export function ScoringView({ idea, weights, onSetScore, onSetStructuredNote, on
           {basicCriterionIds.map((id) => {
             const cr = categories.flatMap((c) => c.criteria).find((c) => c.id === id);
             if (!cr) return null;
-            return <CriterionCard key={cr.id} cr={cr} idea={idea} weights={weights} onSetScore={onSetScore} onSetWeight={onSetWeight} />;
+            return <CriterionCard key={cr.id} cr={cr} idea={idea} weights={weights} onSetScore={onSetScore} />;
           })}
         </div>
       </div>
@@ -251,7 +253,7 @@ export function ScoringView({ idea, weights, onSetScore, onSetStructuredNote, on
               </div>
               <div className="space-y-4">
                 {advancedCriteria.map((cr) => (
-                  <CriterionCard key={cr.id} cr={cr} idea={idea} weights={weights} onSetScore={onSetScore} onSetWeight={onSetWeight} />
+                  <CriterionCard key={cr.id} cr={cr} idea={idea} weights={weights} onSetScore={onSetScore} />
                 ))}
               </div>
             </div>

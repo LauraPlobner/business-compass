@@ -1,25 +1,28 @@
-import { categories } from "@/data/criteria";
+import { Category } from "@/data/criteria";
 import { Idea } from "@/data/defaultIdeas";
 import { computeTotalScore, computeCategoryScore, getGrade, getUnansweredCriteria } from "@/lib/scoring";
-import { CustomWeights } from "@/hooks/useWeights";
+import { CustomWeights } from "@/hooks/useCriteria";
 
 interface OverviewViewProps {
   ideas: Idea[];
   weights: CustomWeights;
+  categories: Category[];
   onSelectIdea: (id: string) => void;
 }
 
-export function OverviewView({ ideas, weights, onSelectIdea }: OverviewViewProps) {
-  const sorted = [...ideas].sort((a, b) => computeTotalScore(b, weights) - computeTotalScore(a, weights));
+export function OverviewView({ ideas, weights, categories, onSelectIdea }: OverviewViewProps) {
+  const sorted = [...ideas].sort(
+    (a, b) => computeTotalScore(b, weights, categories) - computeTotalScore(a, weights, categories)
+  );
   const totalCriteria = categories.reduce((s, c) => s + c.criteria.length, 0);
 
   return (
     <div className="flex-1 overflow-y-auto p-6" style={{ maxHeight: "calc(100vh - 110px)" }}>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {sorted.map((idea, index) => {
-          const score = computeTotalScore(idea, weights);
+          const score = computeTotalScore(idea, weights, categories);
           const grade = getGrade(score);
-          const unanswered = getUnansweredCriteria(idea);
+          const unanswered = getUnansweredCriteria(idea, categories);
           const answered = totalCriteria - unanswered.length;
 
           return (
@@ -69,7 +72,7 @@ export function OverviewView({ ideas, weights, onSelectIdea }: OverviewViewProps
               {/* Category mini bars */}
               <div className="space-y-1.5">
                 {categories.map((cat) => {
-                  const catScore = computeCategoryScore(idea, cat.id, weights);
+                  const catScore = computeCategoryScore(idea, cat.id, weights, categories);
                   return (
                     <div key={cat.id} className="flex items-center gap-2">
                       <span className="text-[10px] text-muted-foreground w-24 truncate">{cat.name}</span>

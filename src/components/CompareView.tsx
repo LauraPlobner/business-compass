@@ -1,29 +1,30 @@
 import { useRef } from "react";
-import { categories } from "@/data/criteria";
+import { Category } from "@/data/criteria";
 import { Idea } from "@/data/defaultIdeas";
 import { computeCategoryScore, computeTotalScore, getGrade } from "@/lib/scoring";
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Legend } from "recharts";
 import html2canvas from "html2canvas";
 import { Download, Trophy } from "lucide-react";
-import { CustomWeights } from "@/hooks/useWeights";
+import { CustomWeights } from "@/hooks/useCriteria";
 
 interface CompareViewProps {
   ideas: Idea[];
   weights: CustomWeights;
+  categories: Category[];
   onSelectIdea: (id: string) => void;
 }
 
-export function CompareView({ ideas, weights, onSelectIdea }: CompareViewProps) {
+export function CompareView({ ideas, weights, categories, onSelectIdea }: CompareViewProps) {
   const exportRef = useRef<HTMLDivElement>(null);
 
   const ranked = [...ideas]
-    .map((idea) => ({ idea, score: computeTotalScore(idea, weights) }))
+    .map((idea) => ({ idea, score: computeTotalScore(idea, weights, categories) }))
     .sort((a, b) => b.score - a.score);
 
   const radarData = categories.map((cat) => {
     const entry: Record<string, string | number> = { category: cat.name };
     ideas.forEach((idea) => {
-      entry[idea.name] = parseFloat(computeCategoryScore(idea, cat.id, weights).toFixed(2));
+      entry[idea.name] = parseFloat(computeCategoryScore(idea, cat.id, weights, categories).toFixed(2));
     });
     return entry;
   });
@@ -80,7 +81,7 @@ export function CompareView({ ideas, weights, onSelectIdea }: CompareViewProps) 
                   </div>
                   <div className="flex gap-1.5 mt-2">
                     {categories.map((cat) => {
-                      const catScore = computeCategoryScore(idea, cat.id, weights);
+                      const catScore = computeCategoryScore(idea, cat.id, weights, categories);
                       return (
                         <div key={cat.id} className="flex-1">
                           <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
