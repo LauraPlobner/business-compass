@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <style>
+    /* Linien folgen dem Browser-Theme: schwarz auf hell, weiss auf dunkel */
+    :root { --ink: #000000; }
+    @media (prefers-color-scheme: dark) { :root { --ink: #ffffff; } }
+    .ink { stroke: var(--ink); stroke-width: 22; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+    .pan { fill: #fbc77d; }
+    .body { fill: #fbc77d; }
+  </style>
+
+  <!-- Aufhängung: Balken und Schnüre -->
+  <path class="ink" d="M 44 74 Q 150 100 256 86 Q 362 72 468 74" />
+  <path class="ink" d="M 44 74 q 0 26 30 22" />
+  <path class="ink" d="M 468 74 q 0 26 -30 22" />
+  <path class="ink" d="M 105 96 L 12 318 M 105 96 L 198 318" />
+  <path class="ink" d="M 407 96 L 314 318 M 407 96 L 500 318" />
+
+  <!-- Waagschalen -->
+  <path class="pan ink" d="M 12 318 A 93 93 0 0 0 198 318 Z" />
+  <path class="pan ink" d="M 314 318 A 93 93 0 0 0 500 318 Z" />
+
+  <!-- Ständer -->
+  <rect class="body ink" x="237" y="16" width="38" height="416" rx="19" />
+  <circle class="body ink" cx="256" cy="86" r="28" />
+
+  <!-- Fuss -->
+  <rect class="body ink" x="212" y="424" width="88" height="48" rx="16" />
+  <rect class="body ink" x="124" y="464" width="264" height="36" rx="14" />
+</svg>
