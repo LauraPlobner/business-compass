@@ -1,11 +1,21 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { pb } from "@/lib/pocketbase";
-import { categories as builtinCategories, buildCategories, CustomCriterion } from "@/data/criteria";
+import {
+  categories as builtinCategories,
+  buildCategories,
+  CriterionNames,
+  CustomCriterion,
+} from "@/data/criteria";
 
 export type CustomWeights = Record<string, number>; // criterionId -> weight
 
-/** Schlüssel, unter dem die eigenen Kriterien im JSON-Feld des weights-Records liegen. */
-const CRITERIA_KEY = "__criteria";
+/**
+ * Schlüssel im JSON-Feld des weights-Records. Alles mit "__" davor ist Metadaten,
+ * alles andere ist ein Gewicht (criterionId -> Zahl).
+ */
+const CRITERIA_KEY = "__criteria"; // selbst angelegte Kriterien
+const DELETED_KEY = "__deleted"; // gelöschte Standard-Kriterien (ids)
+const NAMES_KEY = "__names"; // umbenannte Standard-Kriterien (id -> Name)
 
 function getDefaultWeights(custom: CustomCriterion[] = []): CustomWeights {
   const weights: CustomWeights = {};
@@ -20,19 +30,38 @@ function getDefaultWeights(custom: CustomCriterion[] = []): CustomWeights {
   return weights;
 }
 
-/** Der eine Record enthält beides: die Gewichte (flach) und die eigenen Kriterien. */
-function parseRecord(data: unknown): { weights: CustomWeights; custom: CustomCriterion[] } {
-  const raw = (data ?? {}) as Record<string, unknown>;
-  const custom = Array.isArray(raw[CRITERIA_KEY]) ? (raw[CRITERIA_KEY] as CustomCriterion[]) : [];
-  const weights: CustomWeights = {};
-  for (const [key, value] of Object.entries(raw)) {
-    if (key !== CRITERIA_KEY && typeof value === "number") weights[key] = value;
-  }
-  return { weights, custom };
+interface CriteriaState {
+  weights: CustomWeights;
+  custom: CustomCriterion[];
+  deleted: string[];
+  names: CriterionNames;
 }
 
-function serialize(weights: CustomWeights, custom: CustomCriterion[]): Record<string, unknown> {
-  return { ...weights, [CRITERIA_KEY]: custom };
+/** Der eine Record enthält alles: Gewichte (flach), eigene, gelöschte und umbenannte Kriterien. */
+function parseRecord(data: unknown): CriteriaState {
+  const raw = (data ?? {}) as Record<string, unknown>;
+  const custom = Array.isArray(raw[CRITERIA_KEY]) ? (raw[CRITERIA_KEY] as CustomCriterion[]) : [];
+  const deleted = Array.isArray(raw[DELETED_KEY])
+    ? (raw[DELETED_KEY] as unknown[]).filter((id): id is string => typeof id === "string")
+    : [];
+  const names: CriterionNames = {};
+  for (const [id, value] of Object.entries((raw[NAMES_KEY] ?? {}) as Record<string, unknown>)) {
+    if (typeof value === "string") names[id] = value;
+  }
+  const weights: CustomWeights = {};
+  for (const [key, value] of Object.entries(raw)) {
+    if (!key.startsWith("__") && typeof value === "number") weights[key] = value;
+  }
+  return { weights, custom, deleted, names };
+}
+
+function serialize(state: CriteriaState): Record<string, unknown> {
+  return {
+    ...state.weights,
+    [CRITERIA_KEY]: state.custom,
+    [DELETED_KEY]: state.deleted,
+    [NAMES_KEY]: state.names,
+  };
 }
 
 function newCriterionId(): string {
@@ -46,9 +75,13 @@ function newCriterionId(): string {
 export function useCriteria() {
   const [weights, setWeights] = useState<CustomWeights>(() => getDefaultWeights());
   const [custom, setCustom] = useState<CustomCriterion[]>([]);
+  const [deleted, setDeleted] = useState<string[]>([]);
+  const [names, setNames] = useState<CriterionNames>({});
 
   const weightsRef = useRef<CustomWeights>(weights);
   const customRef = useRef<CustomCriterion[]>(custom);
+  const deletedRef = useRef<string[]>(deleted);
+  const namesRef = useRef<CriterionNames>(names);
   const recordIdRef = useRef<string | null>(null);
   // Resolves, sobald bekannt ist, ob schon ein Record existiert – so legt ein
   // früher Klick nicht versehentlich einen zweiten an.
@@ -70,8 +103,12 @@ export function useCriteria() {
         const merged = { ...getDefaultWeights(parsed.custom), ...parsed.weights };
         weightsRef.current = merged;
         customRef.current = parsed.custom;
+        deletedRef.current = parsed.deleted;
+        namesRef.current = parsed.names;
         setWeights(merged);
         setCustom(parsed.custom);
+        setDeleted(parsed.deleted);
+        setNames(parsed.names);
       })
       .catch((e) => {
         console.error("[useCriteria] Ladefehler:", e);
@@ -80,7 +117,12 @@ export function useCriteria() {
 
   const persist = useCallback(async () => {
     await loadedRef.current;
-    const data = serialize(weightsRef.current, customRef.current);
+    const data = serialize({
+      weights: weightsRef.current,
+      custom: customRef.current,
+      deleted: deletedRef.current,
+      names: namesRef.current,
+    });
     try {
       if (recordIdRef.current) {
         await pb.collection("weights").update(recordIdRef.current, { data });
@@ -144,21 +186,75 @@ export function useCriteria() {
     [schedulePersist]
   );
 
+  /**
+   * Löscht jedes Kriterium – eigene verschwinden ganz, Standard-Kriterien werden
+   * ausgeblendet und lassen sich mit restoreStandardCriteria() zurückholen.
+   */
   const deleteCriterion = useCallback(
     (criterionId: string) => {
-      const nextCustom = customRef.current.filter((c) => c.id !== criterionId);
-      const nextWeights = { ...weightsRef.current };
-      delete nextWeights[criterionId];
-      customRef.current = nextCustom;
-      weightsRef.current = nextWeights;
-      setCustom(nextCustom);
-      setWeights(nextWeights);
+      const isCustom = customRef.current.some((c) => c.id === criterionId);
+
+      if (isCustom) {
+        const nextCustom = customRef.current.filter((c) => c.id !== criterionId);
+        const nextWeights = { ...weightsRef.current };
+        delete nextWeights[criterionId];
+        customRef.current = nextCustom;
+        weightsRef.current = nextWeights;
+        setCustom(nextCustom);
+        setWeights(nextWeights);
+      } else {
+        if (deletedRef.current.includes(criterionId)) return;
+        // Gewicht und Name bleiben stehen: beim Wiederherstellen ist alles wieder da.
+        const nextDeleted = [...deletedRef.current, criterionId];
+        deletedRef.current = nextDeleted;
+        setDeleted(nextDeleted);
+      }
       schedulePersist();
     },
     [schedulePersist]
   );
 
-  const cats = useMemo(() => buildCategories(custom), [custom]);
+  /** Benennt jedes Kriterium um, eigene wie Standard-Kriterien. */
+  const renameCriterion = useCallback(
+    (criterionId: string, name: string) => {
+      const trimmed = name.trim();
+      if (!trimmed) return;
+      const isCustom = customRef.current.some((c) => c.id === criterionId);
 
-  return { categories: cats, weights, setWeight, resetWeights, addCriterion, deleteCriterion };
+      if (isCustom) {
+        const nextCustom = customRef.current.map((c) =>
+          c.id === criterionId ? { ...c, name: trimmed } : c
+        );
+        customRef.current = nextCustom;
+        setCustom(nextCustom);
+      } else {
+        const nextNames = { ...namesRef.current, [criterionId]: trimmed };
+        namesRef.current = nextNames;
+        setNames(nextNames);
+      }
+      schedulePersist();
+    },
+    [schedulePersist]
+  );
+
+  /** Holt alle gelöschten Standard-Kriterien samt Gewicht und Bewertungen zurück. */
+  const restoreStandardCriteria = useCallback(() => {
+    deletedRef.current = [];
+    setDeleted([]);
+    schedulePersist();
+  }, [schedulePersist]);
+
+  const cats = useMemo(() => buildCategories(custom, deleted, names), [custom, deleted, names]);
+
+  return {
+    categories: cats,
+    weights,
+    setWeight,
+    resetWeights,
+    addCriterion,
+    deleteCriterion,
+    renameCriterion,
+    restoreStandardCriteria,
+    deletedCount: deleted.length,
+  };
 }

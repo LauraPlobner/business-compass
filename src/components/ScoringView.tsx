@@ -97,6 +97,12 @@ export function ScoringView({ idea, weights, categories, onSetScore, onSetStruct
     onSetCompetitorLinks(konkurrenz.filter((_, i) => i !== index));
   };
 
+  // Nur die Basis-Kriterien, die es noch gibt – gelöschte fallen raus.
+  const allCriteria = categories.flatMap((c) => c.criteria);
+  const basicCriteria = basicCriterionIds
+    .map((id) => allCriteria.find((cr) => cr.id === id))
+    .filter((cr): cr is Criterion => cr != null);
+
   return (
     <div className="flex-1 overflow-y-auto p-6" style={{ maxHeight: "calc(100vh - 110px)" }}>
       {/* Structured Notes */}
@@ -203,21 +209,21 @@ export function ScoringView({ idea, weights, categories, onSetScore, onSetStruct
       </div>
 
       {/* Basic Evaluation */}
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-4 pb-3 border-b-2 border-foreground/20">
-          <h2 className="text-base font-bold text-foreground">Basic Evaluation</h2>
-          <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-foreground/10 text-foreground">
-            {basicCriterionIds.length} Kriterien
-          </span>
+      {basicCriteria.length > 0 && (
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-4 pb-3 border-b-2 border-foreground/20">
+            <h2 className="text-base font-bold text-foreground">Basic Evaluation</h2>
+            <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-foreground/10 text-foreground">
+              {basicCriteria.length} Kriterien
+            </span>
+          </div>
+          <div className="space-y-4">
+            {basicCriteria.map((cr) => (
+              <CriterionCard key={cr.id} cr={cr} idea={idea} weights={weights} onSetScore={onSetScore} />
+            ))}
+          </div>
         </div>
-        <div className="space-y-4">
-          {basicCriterionIds.map((id) => {
-            const cr = categories.flatMap((c) => c.criteria).find((c) => c.id === id);
-            if (!cr) return null;
-            return <CriterionCard key={cr.id} cr={cr} idea={idea} weights={weights} onSetScore={onSetScore} />;
-          })}
-        </div>
-      </div>
+      )}
 
       {/* Erweiterte Evaluation (collapsible) */}
       <div className="mb-8">

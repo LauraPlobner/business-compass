@@ -3,9 +3,12 @@ export interface Criterion {
   name: string;
   weight: number;
   hints: Record<number, string>;
-  /** true für selbst angelegte Kriterien (löschbar, aus der DB) */
+  /** true für selbst angelegte Kriterien (liegen komplett in der DB, nicht in dieser Datei) */
   custom?: boolean;
 }
+
+/** Umbenannte Kriterien: criterionId -> neuer Name. Nur für Standard-Kriterien nötig. */
+export type CriterionNames = Record<string, string>;
 
 /** Ein selbst angelegtes Kriterium, wie es in der DB liegt. */
 export interface CustomCriterion {
@@ -113,14 +116,22 @@ export const categories: Category[] = [
 ];
 
 /**
- * Die Standard-Kriterien aus dieser Datei, ergänzt um die selbst angelegten.
+ * Die Standard-Kriterien aus dieser Datei – ohne die gelöschten, mit den umbenannten unter
+ * ihrem neuen Namen – ergänzt um die selbst angelegten.
  * Ergebnis ist die einzige Kriterienliste, mit der die App arbeitet.
  */
-export function buildCategories(custom: CustomCriterion[]): Category[] {
+export function buildCategories(
+  custom: CustomCriterion[],
+  deleted: string[] = [],
+  names: CriterionNames = {}
+): Category[] {
+  const isDeleted = new Set(deleted);
   return categories.map((cat) => ({
     ...cat,
     criteria: [
-      ...cat.criteria,
+      ...cat.criteria
+        .filter((cr) => !isDeleted.has(cr.id))
+        .map((cr) => (names[cr.id] ? { ...cr, name: names[cr.id] } : cr)),
       ...custom
         .filter((c) => c.categoryId === cat.id)
         .map((c) => ({ id: c.id, name: c.name, weight: c.weight, hints: c.hints, custom: true })),

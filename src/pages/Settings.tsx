@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useCriteria } from "@/hooks/useCriteria";
-import { ArrowLeft, Plus, RotateCcw, Scale, Trash2 } from "lucide-react";
+import { ArrowLeft, Pencil, Plus, RotateCcw, Scale, Trash2, Undo2 } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,16 +16,50 @@ import {
 const emptyDraft = { name: "", weight: "5", hint1: "", hint5: "" };
 
 const Settings = () => {
-  const { categories, weights, setWeight, resetWeights, addCriterion, deleteCriterion } = useCriteria();
+  const {
+    categories,
+    weights,
+    setWeight,
+    resetWeights,
+    addCriterion,
+    deleteCriterion,
+    renameCriterion,
+    restoreStandardCriteria,
+    deletedCount,
+  } = useCriteria();
   const [addingIn, setAddingIn] = useState<string | null>(null);
   const [draft, setDraft] = useState(emptyDraft);
-  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string; custom: boolean } | null>(null);
   const [resetOpen, setResetOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  // Escape darf den Namen nicht speichern – auch nicht über das folgende onBlur.
+  const cancelledRef = useRef(false);
 
   const totalWeight = categories.reduce(
     (sum, cat) => sum + cat.criteria.reduce((s, cr) => s + (weights?.[cr.id] ?? cr.weight), 0),
     0
   );
+
+  const startRenaming = (id: string, name: string) => {
+    cancelledRef.current = false;
+    setEditingId(id);
+    setEditName(name);
+  };
+
+  const commitRename = (id: string) => {
+    if (cancelledRef.current) {
+      cancelledRef.current = false;
+      return;
+    }
+    if (editName.trim()) renameCriterion(id, editName);
+    setEditingId(null);
+  };
+
+  const cancelRename = () => {
+    cancelledRef.current = true;
+    setEditingId(null);
+  };
 
   const startAdding = (categoryId: string) => {
     setAddingIn(categoryId);
@@ -98,14 +132,36 @@ const Settings = () => {
                     return (
                       <div key={cr.id} className="flex items-center gap-3">
                         <div className="w-60 shrink-0 min-w-0">
-                          <div className="text-sm text-foreground truncate">
-                            {cr.name}
-                            {cr.custom && (
-                              <span className="ml-1.5 text-[10px] font-semibold text-muted-foreground uppercase">
-                                eigen
-                              </span>
-                            )}
-                          </div>
+                          {editingId === cr.id ? (
+                            <input
+                              autoFocus
+                              value={editName}
+                              onChange={(e) => setEditName(e.target.value)}
+                              onBlur={() => commitRename(cr.id)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") commitRename(cr.id);
+                                if (e.key === "Escape") cancelRename();
+                              }}
+                              className="w-full h-8 bg-secondary border border-border rounded-md text-foreground text-sm px-2 outline-none focus:ring-2 focus:ring-ring transition-all"
+                            />
+                          ) : (
+                            <button
+                              onClick={() => startRenaming(cr.id, cr.name)}
+                              title="Kriterium umbenennen"
+                              className="group flex items-center gap-1.5 w-full min-w-0 text-left"
+                            >
+                              <span className="text-sm text-foreground truncate">{cr.name}</span>
+                              {cr.custom && (
+                                <span className="text-[10px] font-semibold text-muted-foreground uppercase shrink-0">
+                                  eigen
+                                </span>
+                              )}
+                              <Pencil
+                                size={11}
+                                className="shrink-0 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+                              />
+                            </button>
+                          )}
                         </div>
                         <input
                           type="number"
@@ -124,17 +180,13 @@ const Settings = () => {
                         <span className="text-[11px] text-muted-foreground w-11 text-right tabular-nums">
                           {share.toFixed(1)}%
                         </span>
-                        {cr.custom ? (
-                          <button
-                            onClick={() => setDeleteTarget({ id: cr.id, name: cr.name })}
-                            className="text-muted-foreground hover:text-destructive transition-colors p-1"
-                            title="Eigenes Kriterium löschen"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        ) : (
-                          <span className="w-6" />
-                        )}
+                        <button
+                          onClick={() => setDeleteTarget({ id: cr.id, name: cr.name, custom: !!cr.custom })}
+                          className="text-muted-foreground hover:text-destructive transition-colors p-1"
+                          title="Kriterium löschen"
+                        >
+                          <Trash2 size={14} />
+                        </button>
                       </div>
                     );
                   })}
@@ -208,13 +260,27 @@ const Settings = () => {
             <div className="text-sm text-muted-foreground">
               Gesamt: <span className="font-bold text-foreground">{totalWeight} Pkt.</span>
             </div>
-            <button
-              onClick={() => setResetOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
-            >
-              <RotateCcw size={14} />
-              Gewichte auf Standard zurücksetzen
-            </button>
+            <div className="flex items-center gap-1">
+              {deletedCount > 0 && (
+                <button
+                  onClick={restoreStandardCriteria}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
+                  title="Gelöschte Standard-Kriterien wieder einblenden"
+                >
+                  <Undo2 size={14} />
+                  {deletedCount === 1
+                    ? "1 gelöschtes Standard-Kriterium wiederherstellen"
+                    : `${deletedCount} gelöschte Standard-Kriterien wiederherstellen`}
+                </button>
+              )}
+              <button
+                onClick={() => setResetOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
+              >
+                <RotateCcw size={14} />
+                Gewichte auf Standard zurücksetzen
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -225,6 +291,9 @@ const Settings = () => {
             <AlertDialogTitle>Kriterium „{deleteTarget?.name}" löschen?</AlertDialogTitle>
             <AlertDialogDescription>
               Das Kriterium verschwindet aus allen Ideen und aus der Bewertung.
+              {deleteTarget?.custom
+                ? " Eigene Kriterien lassen sich nicht wiederherstellen."
+                : " Standard-Kriterien kannst du unten jederzeit wiederherstellen – die bisherigen Bewertungen sind dann wieder da."}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
