@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { Category } from "@/data/criteria";
-import { Idea } from "@/data/defaultIdeas";
+import { Idea, emptyNotes } from "@/data/defaultIdeas";
 import { getCriterionLeaders } from "@/lib/criteriaInsights";
 
 const cats: Category[] = [
@@ -50,7 +50,7 @@ const idea = (id: string, name: string, scores: Record<string, number>): Idea =>
   id,
   name,
   notes: "",
-  structuredNotes: {},
+  structuredNotes: { ...emptyNotes },
   scores,
 });
 
