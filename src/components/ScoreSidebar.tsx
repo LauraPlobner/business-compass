@@ -44,8 +44,8 @@ export function ScoreSidebar({
 
   return (
     <div
-      className="shrink-0 overflow-y-auto p-5 bg-card border-l border-border"
-      style={{ width: "320px", maxHeight: "calc(100vh - 110px)" }}
+      className="shrink-0 min-h-0 overflow-y-auto p-5 bg-card border-l border-border"
+      style={{ width: "320px" }}
     >
       {/* Total score */}
       <div className="text-center mb-6">

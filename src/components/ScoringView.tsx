@@ -30,8 +30,8 @@ function CriterionCard({ cr, idea, weights, onSetScore }: { cr: Criterion; idea:
       <div className="flex items-center justify-between mb-1">
         <span className="text-sm font-semibold text-foreground">{cr.name}</span>
         <Link
-          to="/einstellungen"
-          title="Gewichtung ist global – in den Einstellungen ändern (wirkt auf alle Ideen)"
+          to="/kriterien"
+          title="Gewichtung ist global – unter „Kriterien“ ändern (wirkt auf alle Ideen)"
           className="flex items-center gap-1.5 px-2 py-1 rounded-md text-xs text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
         >
           <Scale size={12} />
@@ -104,7 +104,7 @@ export function ScoringView({ idea, weights, categories, onSetScore, onSetStruct
     .filter((cr): cr is Criterion => cr != null);
 
   return (
-    <div className="flex-1 overflow-y-auto p-6" style={{ maxHeight: "calc(100vh - 110px)" }}>
+    <div className="flex-1 min-h-0 overflow-y-auto p-6">
       {/* Structured Notes */}
       <div className="mb-8">
         <h2 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-3">

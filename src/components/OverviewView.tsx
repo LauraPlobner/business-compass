@@ -17,7 +17,7 @@ export function OverviewView({ ideas, weights, categories, onSelectIdea }: Overv
   const totalCriteria = categories.reduce((s, c) => s + c.criteria.length, 0);
 
   return (
-    <div className="flex-1 overflow-y-auto p-6" style={{ maxHeight: "calc(100vh - 110px)" }}>
+    <div className="flex-1 min-h-0 overflow-y-auto p-6">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {sorted.map((idea, index) => {
           const score = computeTotalScore(idea, weights, categories);
