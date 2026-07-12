@@ -11,6 +11,10 @@ node_modules
 dist
 dist-ssr
 *.local
+*.tsbuildinfo
+
+# Artefakte aus Browser-Tests
+.playwright-mcp/
 
 # Editor directories and files
 .vscode/*
