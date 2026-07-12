@@ -3,8 +3,12 @@ import { pb } from "@/lib/pocketbase";
 import {
   categories as builtinCategories,
   buildCategories,
+  clampWeight,
   CriterionNames,
   CustomCriterion,
+  getDefaultWeight,
+  getHiddenCriteria,
+  MIN_WEIGHT,
 } from "@/data/criteria";
 
 export type CustomWeights = Record<string, number>; // criterionId -> weight
@@ -40,7 +44,9 @@ interface CriteriaState {
 /** Der eine Record enthält alles: Gewichte (flach), eigene, gelöschte und umbenannte Kriterien. */
 function parseRecord(data: unknown): CriteriaState {
   const raw = (data ?? {}) as Record<string, unknown>;
-  const custom = Array.isArray(raw[CRITERIA_KEY]) ? (raw[CRITERIA_KEY] as CustomCriterion[]) : [];
+  const custom = (Array.isArray(raw[CRITERIA_KEY]) ? (raw[CRITERIA_KEY] as CustomCriterion[]) : []).map(
+    (c) => ({ ...c, weight: clampWeight(c.weight) })
+  );
   const deleted = Array.isArray(raw[DELETED_KEY])
     ? (raw[DELETED_KEY] as unknown[]).filter((id): id is string => typeof id === "string")
     : [];
@@ -48,11 +54,25 @@ function parseRecord(data: unknown): CriteriaState {
   for (const [id, value] of Object.entries((raw[NAMES_KEY] ?? {}) as Record<string, unknown>)) {
     if (typeof value === "string") names[id] = value;
   }
+
+  // Gewicht 0 hiess früher "zählt nicht". Die Skala kennt die 0 nicht mehr, also wird das
+  // Kriterium stattdessen ausgeblendet – es fliesst weiterhin nicht in den Score ein und
+  // bekommt sein Standard-Gewicht zurück, falls es später wieder eingeblendet wird.
+  const hidden = new Set(deleted);
   const weights: CustomWeights = {};
   for (const [key, value] of Object.entries(raw)) {
-    if (!key.startsWith("__") && typeof value === "number") weights[key] = value;
+    if (key.startsWith("__") || typeof value !== "number") continue;
+    const standardWeight = getDefaultWeight(key);
+    // Nur Standard-Kriterien lassen sich ausblenden; eigene würden sonst unerreichbar.
+    if (value === 0 && standardWeight !== undefined) {
+      hidden.add(key);
+      weights[key] = standardWeight;
+    } else {
+      weights[key] = clampWeight(value);
+    }
   }
-  return { weights, custom, deleted, names };
+
+  return { weights, custom, deleted: [...hidden], names };
 }
 
 function serialize(state: CriteriaState): Record<string, unknown> {
@@ -149,8 +169,7 @@ export function useCriteria() {
 
   const setWeight = useCallback(
     (criterionId: string, value: number) => {
-      const rounded = Math.max(0, Math.min(100, Math.round(value || 0)));
-      const next = { ...weightsRef.current, [criterionId]: rounded };
+      const next = { ...weightsRef.current, [criterionId]: clampWeight(value) };
       weightsRef.current = next;
       setWeights(next);
       schedulePersist();
@@ -171,7 +190,7 @@ export function useCriteria() {
         id: newCriterionId(),
         categoryId: input.categoryId,
         name: input.name.trim(),
-        weight: Math.max(0, Math.min(100, Math.round(input.weight || 0))),
+        weight: clampWeight(input.weight),
         hints: input.hints,
       };
       const nextCustom = [...customRef.current, criterion];
@@ -237,7 +256,19 @@ export function useCriteria() {
     [schedulePersist]
   );
 
-  /** Holt alle gelöschten Standard-Kriterien samt Gewicht und Bewertungen zurück. */
+  /** Blendet ein einzelnes Standard-Kriterium wieder ein – Gewicht und Bewertungen sind wieder da. */
+  const restoreCriterion = useCallback(
+    (criterionId: string) => {
+      const next = deletedRef.current.filter((id) => id !== criterionId);
+      if (next.length === deletedRef.current.length) return;
+      deletedRef.current = next;
+      setDeleted(next);
+      schedulePersist();
+    },
+    [schedulePersist]
+  );
+
+  /** Holt alle ausgeblendeten Standard-Kriterien samt Gewicht und Bewertungen zurück. */
   const restoreStandardCriteria = useCallback(() => {
     deletedRef.current = [];
     setDeleted([]);
@@ -245,6 +276,7 @@ export function useCriteria() {
   }, [schedulePersist]);
 
   const cats = useMemo(() => buildCategories(custom, deleted, names), [custom, deleted, names]);
+  const hidden = useMemo(() => getHiddenCriteria(deleted, names), [deleted, names]);
 
   return {
     categories: cats,
@@ -254,7 +286,9 @@ export function useCriteria() {
     addCriterion,
     deleteCriterion,
     renameCriterion,
+    restoreCriterion,
     restoreStandardCriteria,
+    hiddenCriteria: hidden,
     deletedCount: deleted.length,
   };
 }

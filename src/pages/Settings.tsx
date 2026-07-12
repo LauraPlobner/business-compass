@@ -1,7 +1,8 @@
 import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { MAX_WEIGHT, MIN_WEIGHT } from "@/data/criteria";
 import { useCriteria } from "@/hooks/useCriteria";
-import { ArrowLeft, Pencil, Plus, RotateCcw, Scale, Trash2, Undo2 } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff, Pencil, Plus, RotateCcw, Scale, Trash2, Undo2 } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,7 +25,9 @@ const Settings = () => {
     addCriterion,
     deleteCriterion,
     renameCriterion,
+    restoreCriterion,
     restoreStandardCriteria,
+    hiddenCriteria,
     deletedCount,
   } = useCriteria();
   const [addingIn, setAddingIn] = useState<string | null>(null);
@@ -99,8 +102,10 @@ const Settings = () => {
         <div className="max-w-3xl mx-auto">
           <p className="text-sm text-muted-foreground mb-6">
             Diese Einstellungen gelten <span className="font-semibold text-foreground">global für alle Ideen</span>.
-            Jedes Kriterium wird hier einmal gewichtet und fliesst mit diesem Gewicht in jede Idee und ins
-            Ranking ein. Neue Kriterien erscheinen sofort in allen Projekten.
+            Jedes Kriterium wird hier einmal auf einer Skala von{" "}
+            <span className="font-semibold text-foreground">{MIN_WEIGHT}–{MAX_WEIGHT}</span> gewichtet und fliesst
+            mit diesem Gewicht in jede Idee und ins Ranking ein. Neue Kriterien erscheinen sofort in allen
+            Projekten.
           </p>
 
           {categories.map((cat) => {
@@ -165,10 +170,11 @@ const Settings = () => {
                         </div>
                         <input
                           type="number"
-                          min={0}
-                          max={100}
+                          min={MIN_WEIGHT}
+                          max={MAX_WEIGHT}
                           value={w}
-                          onChange={(e) => setWeight(cr.id, parseInt(e.target.value) || 0)}
+                          onChange={(e) => setWeight(cr.id, parseInt(e.target.value))}
+                          title={`Gewichtung ${MIN_WEIGHT}–${MAX_WEIGHT}`}
                           className="w-14 h-8 text-center text-xs font-bold bg-secondary border border-border rounded-md text-foreground outline-none focus:ring-2 focus:ring-ring transition-all"
                         />
                         <div className="flex-1 h-2 bg-secondary rounded-full overflow-hidden">
@@ -205,11 +211,11 @@ const Settings = () => {
                       />
                       <input
                         type="number"
-                        min={0}
-                        max={100}
+                        min={MIN_WEIGHT}
+                        max={MAX_WEIGHT}
                         value={draft.weight}
                         onChange={(e) => setDraft({ ...draft, weight: e.target.value })}
-                        title="Gewicht"
+                        title={`Gewichtung ${MIN_WEIGHT}–${MAX_WEIGHT}`}
                         className="w-16 bg-secondary border border-border rounded-md text-foreground text-sm text-center font-bold p-2 outline-none focus:ring-2 focus:ring-ring transition-all"
                       />
                     </div>
@@ -256,21 +262,63 @@ const Settings = () => {
             );
           })}
 
+          {hiddenCriteria.length > 0 && (
+            <div className="mb-8 border-t border-border pt-5">
+              <div className="flex items-center gap-2 mb-1">
+                <EyeOff size={14} className="text-muted-foreground" />
+                <h2 className="text-base font-bold text-foreground">Ausgeblendete Kriterien</h2>
+                <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-secondary text-muted-foreground">
+                  {hiddenCriteria.length}
+                </span>
+              </div>
+              <p className="text-sm text-muted-foreground mb-3">
+                Diese Kriterien zählen nicht in den Score. Gewicht und bisherige Bewertungen bleiben
+                erhalten – beim Einblenden ist alles wieder da.
+              </p>
+
+              <div className="space-y-1.5">
+                {hiddenCriteria.map((cr) => (
+                  <div
+                    key={cr.id}
+                    className="flex items-center gap-3 bg-secondary/50 border border-border rounded-lg px-3 py-2"
+                  >
+                    <span
+                      className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white shrink-0"
+                      style={{ backgroundColor: cr.color }}
+                    >
+                      {cr.categoryName}
+                    </span>
+                    <span className="text-sm text-muted-foreground truncate">{cr.name}</span>
+                    <span className="text-[11px] text-muted-foreground ml-auto shrink-0 tabular-nums">
+                      Gewicht {weights?.[cr.id] ?? "–"}
+                    </span>
+                    <button
+                      onClick={() => restoreCriterion(cr.id)}
+                      className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-foreground bg-card border border-border rounded-md hover:bg-secondary transition-colors shrink-0"
+                      title={`„${cr.name}" wieder einblenden und mitbewerten`}
+                    >
+                      <Eye size={13} />
+                      Einblenden
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="flex items-center justify-between border-t border-border pt-4">
             <div className="text-sm text-muted-foreground">
               Gesamt: <span className="font-bold text-foreground">{totalWeight} Pkt.</span>
             </div>
             <div className="flex items-center gap-1">
-              {deletedCount > 0 && (
+              {deletedCount > 1 && (
                 <button
                   onClick={restoreStandardCriteria}
                   className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
-                  title="Gelöschte Standard-Kriterien wieder einblenden"
+                  title="Alle ausgeblendeten Standard-Kriterien wieder einblenden"
                 >
                   <Undo2 size={14} />
-                  {deletedCount === 1
-                    ? "1 gelöschtes Standard-Kriterium wiederherstellen"
-                    : `${deletedCount} gelöschte Standard-Kriterien wiederherstellen`}
+                  Alle {deletedCount} einblenden
                 </button>
               )}
               <button

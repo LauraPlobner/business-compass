@@ -1,3 +1,11 @@
+/** Die Gewichtungsskala. Punkte pro Kriterium (siehe hints) laufen davon unabhängig von 1–5. */
+export const MIN_WEIGHT = 1;
+export const MAX_WEIGHT = 10;
+
+export function clampWeight(value: number): number {
+  return Math.max(MIN_WEIGHT, Math.min(MAX_WEIGHT, Math.round(value) || MIN_WEIGHT));
+}
+
 export interface Criterion {
   id: string;
   name: string;
@@ -137,6 +145,41 @@ export function buildCategories(
         .map((c) => ({ id: c.id, name: c.name, weight: c.weight, hints: c.hints, custom: true })),
     ],
   }));
+}
+
+export interface HiddenCriterion {
+  id: string;
+  name: string;
+  categoryName: string;
+  color: string;
+}
+
+/**
+ * Die ausgeblendeten Standard-Kriterien mit Namen und Kategorie – damit sie sich einzeln
+ * wieder einblenden lassen. Gewicht und Bewertungen liegen unverändert weiter in der DB.
+ */
+export function getHiddenCriteria(deleted: string[], names: CriterionNames = {}): HiddenCriterion[] {
+  const isHidden = new Set(deleted);
+  return categories.flatMap((cat) =>
+    cat.criteria
+      .filter((cr) => isHidden.has(cr.id))
+      .map((cr) => ({
+        id: cr.id,
+        name: names[cr.id] ?? cr.name,
+        categoryName: cat.name,
+        color: cat.color,
+      }))
+  );
+}
+
+/** Das Standard-Gewicht eines eingebauten Kriteriums, falls es eines ist. */
+export function getDefaultWeight(criterionId: string): number | undefined {
+  for (const cat of categories) {
+    for (const cr of cat.criteria) {
+      if (cr.id === criterionId) return cr.weight;
+    }
+  }
+  return undefined;
 }
 
 export function getAllCriteriaIds(): string[] {
