@@ -46,7 +46,7 @@ const Index = () => {
     <div className="flex flex-col min-h-screen bg-background">
       {/* Header */}
       <div className="bg-card border-b border-border px-6 py-3 flex items-center justify-between shadow-monday">
-        <h1 className="text-lg font-bold text-foreground">Die Grinder Validiermaschine</h1>
+        <h1 className="text-lg font-bold text-foreground">Validiermaschine</h1>
 
         <Link
           to="/einstellungen"
