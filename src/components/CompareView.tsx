@@ -1,9 +1,10 @@
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Category } from "@/data/criteria";
 import { Idea } from "@/data/defaultIdeas";
 import { CustomWeights } from "@/hooks/useCriteria";
 import { CriteriaBreakdown } from "@/components/CriteriaBreakdown";
 import html2canvas from "html2canvas";
+import { jsPDF } from "jspdf";
 import { Download, Trophy } from "lucide-react";
 
 interface CompareViewProps {
@@ -13,17 +14,62 @@ interface CompareViewProps {
   onSelectIdea: (id: string) => void;
 }
 
+/** Breite der Export-Kopie: Kriterien- und Gewichtsspalte plus eine Spalte je Idee. */
+function exportWidth(ideaCount: number): number {
+  return Math.max(1280, 256 + ideaCount * 104 + 48);
+}
+
 export function CompareView({ ideas, weights, categories, onSelectIdea }: CompareViewProps) {
   const exportRef = useRef<HTMLDivElement>(null);
+  const [exporting, setExporting] = useState(false);
 
-  const handleExport = async () => {
-    if (!exportRef.current) return;
-    const canvas = await html2canvas(exportRef.current, { backgroundColor: "#f5f6f8", scale: 2 });
-    const link = document.createElement("a");
-    link.download = "kriterien-vergleich.png";
-    link.href = canvas.toDataURL();
-    link.click();
-  };
+  // Der Export rendert eine eigene, aufgeklappte Kopie ausserhalb des Sichtfelds –
+  // deshalb erst nach deren Render abfotografieren.
+  useEffect(() => {
+    if (!exporting) return;
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const node = exportRef.current;
+        if (!node) return;
+
+        // Ohne geladene Schrift misst html2canvas mit Fallback-Metriken und schneidet Text ab.
+        await document.fonts.ready;
+
+        const canvas = await html2canvas(node, {
+          backgroundColor: "#f5f6f8",
+          scale: 2,
+          width: node.scrollWidth,
+          height: node.scrollHeight,
+          windowWidth: node.scrollWidth,
+          windowHeight: node.scrollHeight,
+        });
+
+        const pdf = new jsPDF({
+          orientation: canvas.width >= canvas.height ? "landscape" : "portrait",
+          unit: "px",
+          format: [canvas.width / 2, canvas.height / 2],
+          compress: true,
+        });
+        pdf.addImage(
+          canvas.toDataURL("image/jpeg", 0.92),
+          "JPEG",
+          0,
+          0,
+          canvas.width / 2,
+          canvas.height / 2
+        );
+        pdf.save("kriterien-vergleich.pdf");
+      } finally {
+        if (!cancelled) setExporting(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [exporting]);
 
   return (
     <div className="flex-1 min-h-0 overflow-y-auto p-6">
@@ -33,22 +79,38 @@ export function CompareView({ ideas, weights, categories, onSelectIdea }: Compar
           Vergleich
         </h1>
         <button
-          onClick={handleExport}
-          className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-semibold shadow-monday hover:shadow-monday-md transition-all"
+          onClick={() => setExporting(true)}
+          disabled={exporting}
+          className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-semibold shadow-monday hover:shadow-monday-md transition-all disabled:opacity-60"
         >
           <Download size={16} />
-          Export PNG
+          {exporting ? "Exportiere…" : "Export PDF"}
         </button>
       </div>
 
-      <div ref={exportRef}>
-        <CriteriaBreakdown
-          ideas={ideas}
-          weights={weights}
-          categories={categories}
-          onSelectIdea={onSelectIdea}
-        />
-      </div>
+      <CriteriaBreakdown
+        ideas={ideas}
+        weights={weights}
+        categories={categories}
+        onSelectIdea={onSelectIdea}
+      />
+
+      {exporting && (
+        <div
+          ref={exportRef}
+          aria-hidden
+          className="fixed top-0 pointer-events-none p-6"
+          style={{ left: "-99999px", width: exportWidth(ideas.length), backgroundColor: "#f5f6f8" }}
+        >
+          <CriteriaBreakdown
+            ideas={ideas}
+            weights={weights}
+            categories={categories}
+            onSelectIdea={onSelectIdea}
+            exportMode
+          />
+        </div>
+      )}
     </div>
   );
 }
