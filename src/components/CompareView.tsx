@@ -3,7 +3,7 @@ import { Category } from "@/data/criteria";
 import { Idea } from "@/data/defaultIdeas";
 import { CustomWeights } from "@/hooks/useCriteria";
 import { CriteriaBreakdown } from "@/components/CriteriaBreakdown";
-import html2canvas from "html2canvas";
+import { toCanvas } from "html-to-image";
 import { jsPDF } from "jspdf";
 import { Download, Trophy } from "lucide-react";
 
@@ -34,16 +34,15 @@ export function CompareView({ ideas, weights, categories, onSelectIdea }: Compar
         const node = exportRef.current;
         if (!node) return;
 
-        // Ohne geladene Schrift misst html2canvas mit Fallback-Metriken und schneidet Text ab.
         await document.fonts.ready;
 
-        const canvas = await html2canvas(node, {
+        // html-to-image rendert über ein SVG-foreignObject, also mit der Textengine des Browsers.
+        // Rasterizer mit eigener Grundlinien-Rechnung (html2canvas) setzten Text mehrere Pixel zu tief.
+        const canvas = await toCanvas(node, {
           backgroundColor: "#f5f6f8",
-          scale: 2,
+          pixelRatio: 2,
           width: node.scrollWidth,
           height: node.scrollHeight,
-          windowWidth: node.scrollWidth,
-          windowHeight: node.scrollHeight,
         });
 
         const pdf = new jsPDF({
@@ -96,19 +95,22 @@ export function CompareView({ ideas, weights, categories, onSelectIdea }: Compar
       />
 
       {exporting && (
-        <div
-          ref={exportRef}
-          aria-hidden
-          className="fixed top-0 pointer-events-none p-6"
-          style={{ left: "-99999px", width: exportWidth(ideas.length), backgroundColor: "#f5f6f8" }}
-        >
-          <CriteriaBreakdown
-            ideas={ideas}
-            weights={weights}
-            categories={categories}
-            onSelectIdea={onSelectIdea}
-            exportMode
-          />
+        // Die Positionierung sitzt bewusst auf dem Wrapper: html-to-image kopiert die Styles des
+        // aufgenommenen Knotens in ein SVG – ein "fixed; left: -99999px" würde dort ins Leere rendern.
+        <div aria-hidden className="fixed top-0 pointer-events-none" style={{ left: "-99999px" }}>
+          <div
+            ref={exportRef}
+            className="p-6"
+            style={{ width: exportWidth(ideas.length), backgroundColor: "#f5f6f8" }}
+          >
+            <CriteriaBreakdown
+              ideas={ideas}
+              weights={weights}
+              categories={categories}
+              onSelectIdea={onSelectIdea}
+              exportMode
+            />
+          </div>
         </div>
       )}
     </div>

@@ -24,16 +24,16 @@ function leaderLabel(leaders: Idea[]): string {
 function StrengthCard({ leader, exportMode }: { leader: CriterionLeader; exportMode: boolean }) {
   const { criterion, category, weight, headline, hasPhrase, leaders, topScore, topHint } = leader;
   const unrated = topScore == null;
-  // html2canvas schneidet Text in truncate-Boxen ab – im PDF darf er stattdessen umbrechen.
+  // Im PDF gibt es kein Tooltip für gekürzten Text – dort bricht er stattdessen um.
   const clamp = exportMode ? "break-words" : "truncate";
 
   return (
     <div
-      className={`rounded-lg border ${exportMode ? "p-4" : "p-3"} ${
+      className={`rounded-lg border p-3 ${
         unrated ? "border-dashed border-border bg-secondary/30" : "border-border bg-card"
       }`}
     >
-      <div className={`flex items-start gap-2 ${exportMode ? "mb-3" : "mb-2"}`}>
+      <div className="flex items-start gap-2 mb-2">
         <span
           className="w-1.5 h-1.5 rounded-full mt-1 shrink-0"
           style={{ backgroundColor: unrated ? "hsl(var(--muted-foreground))" : category.color }}
@@ -51,30 +51,18 @@ function StrengthCard({ leader, exportMode }: { leader: CriterionLeader; exportM
         <p className="text-[11px] text-muted-foreground pl-3.5">Noch keine Idee bewertet</p>
       ) : (
         <div className="pl-3.5">
-          <p
-            className={`text-sm font-bold text-foreground leading-snug ${clamp}`}
-            title={leaderLabel(leaders)}
-          >
+          <p className={`text-sm font-bold text-foreground ${clamp}`} title={leaderLabel(leaders)}>
             {leaderLabel(leaders)}
           </p>
-          <div className={`flex items-center gap-2 ${exportMode ? "mt-2.5" : "mt-1"}`}>
+          <div className="flex items-center gap-1.5 mt-1">
             <span
-              // html2canvas verschiebt die Grundlinie in Boxen mit vertikalem Padding; eine Box
-              // mit fester Höhe und zentriertem Inhalt rendert dagegen zuverlässig (wie in der Matrix).
-              className={`text-[10px] font-bold rounded text-white shrink-0 ${
-                exportMode
-                  ? "inline-flex items-center justify-center h-5 px-1.5"
-                  : "px-1.5 py-0.5"
-              }`}
+              className="text-[10px] font-bold px-1.5 py-0.5 rounded text-white shrink-0"
               style={{ backgroundColor: getBarColor(topScore) }}
             >
               {topScore}/5
             </span>
             {topHint && (
-              <span
-                className={`text-[11px] text-muted-foreground leading-snug ${clamp}`}
-                title={topHint}
-              >
+              <span className={`text-[11px] text-muted-foreground ${clamp}`} title={topHint}>
                 {topHint}
               </span>
             )}
@@ -82,11 +70,7 @@ function StrengthCard({ leader, exportMode }: { leader: CriterionLeader; exportM
         </div>
       )}
 
-      <p
-        className={`text-[10px] text-muted-foreground/70 pl-3.5 leading-snug ${
-          exportMode ? "mt-3" : "mt-2"
-        } ${clamp}`}
-      >
+      <p className={`text-[10px] text-muted-foreground/70 mt-2 pl-3.5 ${clamp}`}>
         {hasPhrase ? `${criterion.name} · Gewicht ${weight}` : `Gewicht ${weight}`}
       </p>
     </div>
@@ -131,7 +115,7 @@ export function CriteriaBreakdown({
   // Summe der Gewichte aller sichtbaren Kriterien – Bezugsgrösse des gewichteten Schnitts.
   const totalWeight = leaders.reduce((sum, l) => sum + l.weight, 0);
 
-  // html2canvas versetzt sticky Zellen; im PDF wird ohnehin nicht gescrollt.
+  // Im PDF wird nicht gescrollt – die Kriteriumsspalte braucht dort kein sticky.
   const stickyCol = exportMode ? "" : "sticky left-0 z-10";
 
   const ratedIdeas = ideas.filter((idea) => Object.keys(idea.scores).length > 0).length;
@@ -164,7 +148,7 @@ export function CriteriaBreakdown({
                     {category.name}
                   </span>
                 </div>
-                <div className="grid grid-cols-4 gap-3">
+                <div className="grid grid-cols-4 gap-2">
                   {catLeaders.map((l) => (
                     <StrengthCard key={l.criterion.id} leader={l} exportMode={exportMode} />
                   ))}
