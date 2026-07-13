@@ -77,7 +77,7 @@ function StrengthCard({ leader }: { leader: CriterionLeader }) {
 
 /** Im PDF stehen die Stärken als Liste – Karten verschenken dort zu viel Platz. */
 function StrengthRow({ leader }: { leader: CriterionLeader }) {
-  const { criterion, category, weight, headline, hasPhrase, leaders, topScore, topHint } = leader;
+  const { criterion, category, weight, headline, leaders, topScore, topHint } = leader;
   const unrated = topScore == null;
 
   return (
@@ -111,12 +111,8 @@ function StrengthRow({ leader }: { leader: CriterionLeader }) {
         </>
       )}
 
-      <span className="text-[10px] text-muted-foreground/70 w-44 shrink-0 text-right">
-        {/* Ohne Klartext-Frage ist die Überschrift bereits der Kriteriumsname – dann bliebe die
-            Spalte fast leer und sähe aus, als fehle etwas. */}
-        {hasPhrase
-          ? `${criterion.name} · Gewicht ${weight}`
-          : `${criterion.custom ? "Eigenes Kriterium" : criterion.name} · Gewicht ${weight}`}
+      <span className="text-[10px] text-muted-foreground/70 w-56 shrink-0 text-right">
+        {criterion.name} · Gewicht {weight}
       </span>
     </div>
   );
