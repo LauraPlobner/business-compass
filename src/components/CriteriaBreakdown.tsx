@@ -21,11 +21,9 @@ function leaderLabel(leaders: Idea[]): string {
   return `${leaders[0].name} +${leaders.length - 1} weitere`;
 }
 
-function StrengthCard({ leader, exportMode }: { leader: CriterionLeader; exportMode: boolean }) {
+function StrengthCard({ leader }: { leader: CriterionLeader }) {
   const { criterion, category, weight, headline, hasPhrase, leaders, topScore, topHint } = leader;
   const unrated = topScore == null;
-  // Im PDF gibt es kein Tooltip für gekürzten Text – dort bricht er stattdessen um.
-  const clamp = exportMode ? "break-words" : "truncate";
 
   return (
     <div
@@ -51,7 +49,7 @@ function StrengthCard({ leader, exportMode }: { leader: CriterionLeader; exportM
         <p className="text-[11px] text-muted-foreground pl-3.5">Noch keine Idee bewertet</p>
       ) : (
         <div className="pl-3.5">
-          <p className={`text-sm font-bold text-foreground ${clamp}`} title={leaderLabel(leaders)}>
+          <p className="text-sm font-bold text-foreground truncate" title={leaderLabel(leaders)}>
             {leaderLabel(leaders)}
           </p>
           <div className="flex items-center gap-1.5 mt-1">
@@ -62,7 +60,7 @@ function StrengthCard({ leader, exportMode }: { leader: CriterionLeader; exportM
               {topScore}/5
             </span>
             {topHint && (
-              <span className={`text-[11px] text-muted-foreground ${clamp}`} title={topHint}>
+              <span className="text-[11px] text-muted-foreground truncate" title={topHint}>
                 {topHint}
               </span>
             )}
@@ -70,9 +68,52 @@ function StrengthCard({ leader, exportMode }: { leader: CriterionLeader; exportM
         </div>
       )}
 
-      <p className={`text-[10px] text-muted-foreground/70 mt-2 pl-3.5 ${clamp}`}>
+      <p className="text-[10px] text-muted-foreground/70 mt-2 pl-3.5 truncate">
         {hasPhrase ? `${criterion.name} · Gewicht ${weight}` : `Gewicht ${weight}`}
       </p>
+    </div>
+  );
+}
+
+/** Im PDF stehen die Stärken als Liste – Karten verschenken dort zu viel Platz. */
+function StrengthRow({ leader }: { leader: CriterionLeader }) {
+  const { criterion, category, weight, headline, hasPhrase, leaders, topScore, topHint } = leader;
+  const unrated = topScore == null;
+
+  return (
+    <div className="flex items-center gap-3 px-4 py-2 border-b border-border/50 last:border-0">
+      <span
+        className="w-1.5 h-1.5 rounded-full shrink-0"
+        style={{ backgroundColor: unrated ? "hsl(var(--muted-foreground))" : category.color }}
+      />
+      <span
+        className={`text-[11px] font-semibold w-56 shrink-0 ${
+          unrated ? "text-muted-foreground" : "text-foreground"
+        }`}
+      >
+        {headline}
+      </span>
+
+      {unrated ? (
+        <span className="text-[11px] text-muted-foreground flex-1">Noch keine Idee bewertet</span>
+      ) : (
+        <>
+          <span className="text-sm font-bold text-foreground w-96 shrink-0 break-words">
+            {leaderLabel(leaders)}
+          </span>
+          <span
+            className="text-[10px] font-bold px-1.5 py-0.5 rounded text-white shrink-0"
+            style={{ backgroundColor: getBarColor(topScore) }}
+          >
+            {topScore}/5
+          </span>
+          <span className="text-[11px] text-muted-foreground flex-1">{topHint}</span>
+        </>
+      )}
+
+      <span className="text-[10px] text-muted-foreground/70 w-44 shrink-0 text-right">
+        {hasPhrase ? `${criterion.name} · Gewicht ${weight}` : `Gewicht ${weight}`}
+      </span>
     </div>
   );
 }
@@ -148,9 +189,9 @@ export function CriteriaBreakdown({
                     {category.name}
                   </span>
                 </div>
-                <div className="grid grid-cols-4 gap-2">
+                <div className="bg-card border border-border rounded-xl shadow-monday overflow-hidden">
                   {catLeaders.map((l) => (
-                    <StrengthCard key={l.criterion.id} leader={l} exportMode={exportMode} />
+                    <StrengthRow key={l.criterion.id} leader={l} />
                   ))}
                 </div>
               </div>
@@ -194,7 +235,7 @@ export function CriteriaBreakdown({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
               {activeTab.leaders.map((l) => (
-                <StrengthCard key={l.criterion.id} leader={l} exportMode={exportMode} />
+                <StrengthCard key={l.criterion.id} leader={l} />
               ))}
             </div>
           </>
