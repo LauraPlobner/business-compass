@@ -2,8 +2,16 @@ import { Fragment, useState } from "react";
 import { Category } from "@/data/criteria";
 import { Idea } from "@/data/defaultIdeas";
 import { CustomWeights } from "@/hooks/useCriteria";
-import { computeCategoryScore, computeTotalScore, getBarColor } from "@/lib/scoring";
-import { getCriterionLeaders, leaderIdsByCriterion, CriterionLeader } from "@/lib/criteriaInsights";
+import {
+  computeCategoryScore,
+  computeTotalScore,
+  getBarColor,
+} from "@/lib/scoring";
+import {
+  getCriterionLeaders,
+  leaderIdsByCriterion,
+  CriterionLeader,
+} from "@/lib/criteriaInsights";
 
 interface CriteriaBreakdownProps {
   ideas: Idea[];
@@ -22,19 +30,34 @@ function leaderLabel(leaders: Idea[]): string {
 }
 
 function StrengthCard({ leader }: { leader: CriterionLeader }) {
-  const { criterion, category, weight, headline, hasPhrase, leaders, topScore, topHint } = leader;
+  const {
+    criterion,
+    category,
+    weight,
+    headline,
+    hasPhrase,
+    leaders,
+    topScore,
+    topHint,
+  } = leader;
   const unrated = topScore == null;
 
   return (
     <div
       className={`rounded-lg border p-3 ${
-        unrated ? "border-dashed border-border bg-secondary/30" : "border-border bg-card"
+        unrated
+          ? "border-dashed border-border bg-secondary/30"
+          : "border-border bg-card"
       }`}
     >
       <div className="flex items-start gap-2 mb-2">
         <span
           className="w-1.5 h-1.5 rounded-full mt-1 shrink-0"
-          style={{ backgroundColor: unrated ? "hsl(var(--muted-foreground))" : category.color }}
+          style={{
+            backgroundColor: unrated
+              ? "hsl(var(--muted-foreground))"
+              : category.color,
+          }}
         />
         <span
           className={`text-[11px] font-semibold leading-tight ${
@@ -46,10 +69,15 @@ function StrengthCard({ leader }: { leader: CriterionLeader }) {
       </div>
 
       {unrated ? (
-        <p className="text-[11px] text-muted-foreground pl-3.5">Noch keine Idee bewertet</p>
+        <p className="text-[11px] text-muted-foreground pl-3.5">
+          Noch keine Idee bewertet
+        </p>
       ) : (
         <div className="pl-3.5">
-          <p className="text-sm font-bold text-foreground truncate" title={leaderLabel(leaders)}>
+          <p
+            className="text-sm font-bold text-foreground truncate"
+            title={leaderLabel(leaders)}
+          >
             {leaderLabel(leaders)}
           </p>
           <div className="flex items-center gap-1.5 mt-1">
@@ -60,7 +88,10 @@ function StrengthCard({ leader }: { leader: CriterionLeader }) {
               {topScore}/5
             </span>
             {topHint && (
-              <span className="text-[11px] text-muted-foreground truncate" title={topHint}>
+              <span
+                className="text-[11px] text-muted-foreground truncate"
+                title={topHint}
+              >
                 {topHint}
               </span>
             )}
@@ -69,7 +100,9 @@ function StrengthCard({ leader }: { leader: CriterionLeader }) {
       )}
 
       <p className="text-[10px] text-muted-foreground/70 mt-2 pl-3.5 truncate">
-        {hasPhrase ? `${criterion.name} · Gewicht ${weight}` : `Gewicht ${weight}`}
+        {hasPhrase
+          ? `${criterion.name} · Gewicht ${weight}`
+          : `Gewicht ${weight}`}
       </p>
     </div>
   );
@@ -77,14 +110,19 @@ function StrengthCard({ leader }: { leader: CriterionLeader }) {
 
 /** Im PDF stehen die Stärken als Liste – Karten verschenken dort zu viel Platz. */
 function StrengthRow({ leader }: { leader: CriterionLeader }) {
-  const { criterion, category, weight, headline, leaders, topScore, topHint } = leader;
+  const { criterion, category, weight, headline, leaders, topScore, topHint } =
+    leader;
   const unrated = topScore == null;
 
   return (
     <div className="flex items-center gap-3 px-4 py-2 border-b border-border/50 last:border-0">
       <span
         className="w-1.5 h-1.5 rounded-full shrink-0"
-        style={{ backgroundColor: unrated ? "hsl(var(--muted-foreground))" : category.color }}
+        style={{
+          backgroundColor: unrated
+            ? "hsl(var(--muted-foreground))"
+            : category.color,
+        }}
       />
       <span
         className={`text-[11px] font-semibold w-56 shrink-0 ${
@@ -95,7 +133,9 @@ function StrengthRow({ leader }: { leader: CriterionLeader }) {
       </span>
 
       {unrated ? (
-        <span className="text-[11px] text-muted-foreground flex-1">Noch keine Idee bewertet</span>
+        <span className="text-[11px] text-muted-foreground flex-1">
+          Noch keine Idee bewertet
+        </span>
       ) : (
         <>
           <span className="text-sm font-bold text-foreground w-96 shrink-0 break-words">
@@ -107,7 +147,9 @@ function StrengthRow({ leader }: { leader: CriterionLeader }) {
           >
             {topScore}/5
           </span>
-          <span className="text-[11px] text-muted-foreground flex-1">{topHint}</span>
+          <span className="text-[11px] text-muted-foreground flex-1">
+            {topHint}
+          </span>
         </>
       )}
 
@@ -141,16 +183,20 @@ export function CriteriaBreakdown({
     .filter((tab) => tab.leaders.length > 0);
 
   // Fällt zurück auf den ersten Tab, wenn die aktive Kategorie ausgeblendet wurde.
-  const activeTab = tabs.find((tab) => tab.category.id === activeCategoryId) ?? tabs[0];
+  const activeTab =
+    tabs.find((tab) => tab.category.id === activeCategoryId) ?? tabs[0];
 
   const totals = new Map(
-    ideas.map((idea) => [idea.id, computeTotalScore(idea, weights, categories)])
+    ideas.map((idea) => [
+      idea.id,
+      computeTotalScore(idea, weights, categories),
+    ]),
   );
   const bestTotal = Math.max(...totals.values());
 
   // Gleiche Reihenfolge wie die Karten oben: bestes Gesamtergebnis zuerst.
   const sortedIdeas = [...ideas].sort(
-    (a, b) => (totals.get(b.id) ?? 0) - (totals.get(a.id) ?? 0)
+    (a, b) => (totals.get(b.id) ?? 0) - (totals.get(a.id) ?? 0),
   );
 
   // Summe der Gewichte aller sichtbaren Kriterien – Bezugsgrösse des gewichteten Schnitts.
@@ -159,14 +205,18 @@ export function CriteriaBreakdown({
   // Im PDF wird nicht gescrollt – die Kriteriumsspalte braucht dort kein sticky.
   const stickyCol = exportMode ? "" : "sticky left-0 z-10";
 
-  const ratedIdeas = ideas.filter((idea) => Object.keys(idea.scores).length > 0).length;
+  const ratedIdeas = ideas.filter(
+    (idea) => Object.keys(idea.scores).length > 0,
+  ).length;
 
   return (
     <div className="space-y-10">
       {/* ---------- Stärken auf einen Blick ---------- */}
       <section>
         <div className="flex items-baseline justify-between mb-4">
-          <h2 className="text-lg font-bold text-foreground">Stärken auf einen Blick</h2>
+          <h2 className="text-lg font-bold text-foreground">
+            Stärken auf einen Blick
+          </h2>
           <span className="text-[11px] text-muted-foreground">
             {ratedIdeas} von {ideas.length} Ideen bewertet
           </span>
@@ -199,53 +249,66 @@ export function CriteriaBreakdown({
           </div>
         ) : (
           activeTab && (
-          <>
-            <div
-              role="tablist"
-              aria-label="Kategorien"
-              className="flex items-stretch gap-1 border-b border-border mb-3 overflow-x-auto"
-            >
-              {tabs.map(({ category, leaders: catLeaders }) => {
-                const active = category.id === activeTab.category.id;
-                return (
-                  <button
-                    key={category.id}
-                    role="tab"
-                    aria-selected={active}
-                    onClick={() => setActiveCategoryId(category.id)}
-                    className={`flex items-center gap-1.5 whitespace-nowrap px-3 py-2 border-b-2 -mb-px text-[11px] font-bold uppercase tracking-wide transition-colors ${
-                      active
-                        ? ""
-                        : "border-transparent text-muted-foreground hover:text-foreground"
-                    }`}
-                    style={active ? { borderColor: category.color, color: category.color } : undefined}
-                  >
-                    <span
-                      className="w-2 h-2 rounded-full shrink-0"
-                      style={{ backgroundColor: active ? category.color : "hsl(var(--muted-foreground))" }}
-                    />
-                    {category.name}
-                    <span className="text-[10px] font-semibold text-muted-foreground/70">
-                      {catLeaders.length}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
+            <>
+              <div
+                role="tablist"
+                aria-label="Kategorien"
+                className="flex items-stretch gap-1 border-b border-border mb-3 overflow-x-auto"
+              >
+                {tabs.map(({ category, leaders: catLeaders }) => {
+                  const active = category.id === activeTab.category.id;
+                  return (
+                    <button
+                      key={category.id}
+                      role="tab"
+                      aria-selected={active}
+                      onClick={() => setActiveCategoryId(category.id)}
+                      className={`flex items-center gap-1.5 whitespace-nowrap px-3 py-2 border-b-2 -mb-px text-[11px] font-bold uppercase tracking-wide transition-colors ${
+                        active
+                          ? ""
+                          : "border-transparent text-muted-foreground hover:text-foreground"
+                      }`}
+                      style={
+                        active
+                          ? {
+                              borderColor: category.color,
+                              color: category.color,
+                            }
+                          : undefined
+                      }
+                    >
+                      <span
+                        className="w-2 h-2 rounded-full shrink-0"
+                        style={{
+                          backgroundColor: active
+                            ? category.color
+                            : "hsl(var(--muted-foreground))",
+                        }}
+                      />
+                      {category.name}
+                      <span className="text-[10px] font-semibold text-muted-foreground/70">
+                        {catLeaders.length}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
-              {activeTab.leaders.map((l) => (
-                <StrengthCard key={l.criterion.id} leader={l} />
-              ))}
-            </div>
-          </>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
+                {activeTab.leaders.map((l) => (
+                  <StrengthCard key={l.criterion.id} leader={l} />
+                ))}
+              </div>
+            </>
           )
         )}
       </section>
 
       {/* ---------- Vollständige Matrix ---------- */}
       <section>
-        <h2 className="text-lg font-bold text-foreground mb-3">Alle Kriterien im Vergleich</h2>
+        <h2 className="text-lg font-bold text-foreground mb-3">
+          Alle Kriterien im Vergleich
+        </h2>
 
         <div
           className={`bg-card border border-border rounded-xl shadow-monday ${
@@ -281,7 +344,9 @@ export function CriteriaBreakdown({
 
             <tbody>
               {categories.map((cat) => {
-                const catLeaders = leaders.filter((l) => l.category.id === cat.id);
+                const catLeaders = leaders.filter(
+                  (l) => l.category.id === cat.id,
+                );
                 if (catLeaders.length === 0) return null;
 
                 return (
@@ -290,7 +355,10 @@ export function CriteriaBreakdown({
                     <tr style={{ backgroundColor: cat.lightColor }}>
                       <td
                         className={`${stickyCol} px-4 py-1.5 text-[10px] font-bold uppercase tracking-wide`}
-                        style={{ backgroundColor: cat.lightColor, color: cat.color }}
+                        style={{
+                          backgroundColor: cat.lightColor,
+                          color: cat.color,
+                        }}
                       >
                         {cat.name}
                       </td>
@@ -299,10 +367,18 @@ export function CriteriaBreakdown({
                         <td
                           key={idea.id}
                           className="px-2 py-1.5 text-center text-[10px] font-bold"
-                          style={{ backgroundColor: cat.lightColor, color: cat.color }}
+                          style={{
+                            backgroundColor: cat.lightColor,
+                            color: cat.color,
+                          }}
                         >
                           {(() => {
-                            const s = computeCategoryScore(idea, cat.id, weights, categories);
+                            const s = computeCategoryScore(
+                              idea,
+                              cat.id,
+                              weights,
+                              categories,
+                            );
                             return s > 0 ? s.toFixed(1) : "–";
                           })()}
                         </td>
@@ -311,7 +387,8 @@ export function CriteriaBreakdown({
 
                     {/* Kriterien der Kategorie */}
                     {catLeaders.map((l) => {
-                      const winners = leaderIds.get(l.criterion.id) ?? new Set<string>();
+                      const winners =
+                        leaderIds.get(l.criterion.id) ?? new Set<string>();
 
                       return (
                         <tr
@@ -319,7 +396,9 @@ export function CriteriaBreakdown({
                           className="border-b border-border/50 last:border-0 hover:bg-secondary/40"
                         >
                           <td className={`${stickyCol} bg-card px-4 py-2`}>
-                            <span className="text-xs text-foreground">{l.criterion.name}</span>
+                            <span className="text-xs text-foreground">
+                              {l.criterion.name}
+                            </span>
                             {l.criterion.custom && (
                               <span className="ml-1.5 text-[9px] font-bold text-muted-foreground/60">
                                 EIGEN
@@ -347,17 +426,27 @@ export function CriteriaBreakdown({
                             const color = getBarColor(score);
 
                             return (
-                              <td key={idea.id} className="px-2 py-2 text-center">
+                              <td
+                                key={idea.id}
+                                className="px-2 py-2 text-center"
+                              >
                                 <span
                                   className={`inline-flex items-center justify-center w-7 h-7 rounded-lg text-xs tabular-nums ${
-                                    isWinner ? "font-black text-white" : "font-medium text-foreground"
+                                    isWinner
+                                      ? "font-black text-white"
+                                      : "font-medium text-foreground"
                                   }`}
                                   style={
                                     isWinner
                                       ? { backgroundColor: color }
-                                      : { backgroundColor: "hsl(var(--secondary))" }
+                                      : {
+                                          backgroundColor:
+                                            "hsl(var(--secondary))",
+                                        }
                                   }
-                                  title={l.criterion.hints[score] ?? `${score} von 5`}
+                                  title={
+                                    l.criterion.hints[score] ?? `${score} von 5`
+                                  }
                                 >
                                   {score}
                                 </span>
@@ -374,7 +463,9 @@ export function CriteriaBreakdown({
 
             <tfoot>
               <tr className="border-t-2 border-border bg-secondary/50">
-                <td className={`${stickyCol} bg-secondary/50 px-4 py-3 text-xs font-bold text-foreground`}>
+                <td
+                  className={`${stickyCol} bg-secondary/50 px-4 py-3 text-xs font-bold text-foreground`}
+                >
                   Gesamt
                 </td>
                 <td className="px-2 py-3 text-center text-[10px] font-bold text-muted-foreground/70">
@@ -399,7 +490,9 @@ export function CriteriaBreakdown({
                     <td key={idea.id} className="px-2 py-3 text-center">
                       <span
                         className={`inline-flex items-center justify-center px-2 h-7 rounded-lg text-xs tabular-nums ${
-                          isBest ? "font-black text-white" : "font-bold text-foreground"
+                          isBest
+                            ? "font-black text-white"
+                            : "font-bold text-foreground"
                         }`}
                         style={
                           isBest
