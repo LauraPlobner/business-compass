@@ -71,8 +71,10 @@ export function CompareView({ ideas, weights, categories, onSelectIdea }: Compar
   }, [exporting]);
 
   return (
-    <div className="flex-1 min-h-0 overflow-y-auto p-6">
-      <div className="flex items-center justify-between mb-6">
+    // Der obere Abstand steckt im Inhalt, nicht im Scrollbereich: sonst würde die fixierte
+    // Kopfzeile der Matrix erst unterhalb des Paddings kleben und Zeilen darüber durchscheinen.
+    <div className="flex-1 min-h-0 overflow-y-auto px-6 pb-6">
+      <div className="flex items-center justify-between mb-6 pt-6">
         <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
           <Trophy className="w-5 h-5 text-primary" />
           Vergleich
